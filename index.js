@@ -30,6 +30,11 @@ export const assets = [
     contentType: 'text/css; charset=utf-8',
   },
   {
+    key: 'highlight_js',
+    file: 'assets/highlight-core.js',
+    contentType: 'application/javascript; charset=utf-8',
+  },
+  {
     key: 'gfm_addons_css',
     file: 'assets/gfm-addons.css',
     contentType: 'text/css; charset=utf-8',

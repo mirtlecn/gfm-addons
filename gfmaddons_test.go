@@ -4,7 +4,7 @@ import "testing"
 
 func TestAssets(t *testing.T) {
 	items := Assets()
-	if got, want := len(items), 8; got != want {
+	if got, want := len(items), 9; got != want {
 		t.Fatalf("len(Assets()) = %d, want %d", got, want)
 	}
 
@@ -21,6 +21,14 @@ func TestAssets(t *testing.T) {
 
 	if _, ok := GetAsset("missing"); ok {
 		t.Fatal("missing asset unexpectedly exists")
+	}
+
+	highlight, ok := GetAsset("highlight_js")
+	if !ok {
+		t.Fatal("highlight_js is missing")
+	}
+	if highlight.ContentType != "application/javascript; charset=utf-8" {
+		t.Fatalf("highlight_js content type = %q", highlight.ContentType)
 	}
 }
 

@@ -38,5 +38,6 @@ content, asset, err := gfmaddons.ReadAsset("ravel_gfm_css")
 - `github_gfm_css` -> `assets/github-gfm.css`
 - `highlight_light_css` -> `assets/highlight-light.css`
 - `highlight_dark_css` -> `assets/highlight-dark.css`
+- `highlight_js` -> `assets/highlight-core.js`
 - `gfm_addons_css` -> `assets/gfm-addons.css`
 - `gfm_addons_js` -> `assets/gfm-addons.js`

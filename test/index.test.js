@@ -15,6 +15,7 @@ const expectedKeys = [
   'github_gfm_css',
   'highlight_light_css',
   'highlight_dark_css',
+  'highlight_js',
   'gfm_addons_css',
   'gfm_addons_js',
 ];
@@ -62,12 +63,14 @@ test('getAssetPath returns stable semantic paths', () => {
   assert.equal(getAssetPath('github_gfm_css'), 'assets/github-gfm.css');
   assert.equal(getAssetPath('highlight_light_css'), 'assets/highlight-light.css');
   assert.equal(getAssetPath('highlight_dark_css'), 'assets/highlight-dark.css');
+  assert.equal(getAssetPath('highlight_js'), 'assets/highlight-core.js');
   assert.equal(getAssetPath('gfm_addons_css'), 'assets/gfm-addons.css');
   assert.equal(getAssetPath('gfm_addons_js'), 'assets/gfm-addons.js');
 });
 
 test('getAssetContentType returns the configured content type', () => {
   assert.equal(getAssetContentType('ravel_gfm_css'), 'text/css; charset=utf-8');
+  assert.equal(getAssetContentType('highlight_js'), 'application/javascript; charset=utf-8');
   assert.equal(getAssetContentType('gfm_addons_js'), 'application/javascript; charset=utf-8');
 });
 
