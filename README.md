@@ -8,13 +8,18 @@ This package ships CSS and JavaScript files for consumers that render GFM docume
 
 ```js
 import { assets, getAssetPath, getAssetContentType } from 'gfm-addons';
+import { getEmbeddedAssetContent } from 'gfm-addons/embedded';
 
 console.log(getAssetPath('ravel_gfm_css'));
 console.log(getAssetContentType('ravel_gfm_css'));
+console.log(getEmbeddedAssetContent('ravel_gfm_css'));
 console.log(assets);
 ```
 
 `manifest.json` contains the same asset metadata for non-JavaScript consumers.
+`gfm-addons/embedded` exports asset content as base64-backed JavaScript so serverless
+functions can statically import resources without relying on platform-specific
+file include rules.
 
 ## Go usage
 

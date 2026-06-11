@@ -5,6 +5,7 @@ import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { assets, getAsset, getAssetContentType, getAssetPath } from '../index.js';
+import { embeddedAssets, getEmbeddedAsset, getEmbeddedAssetContent } from '../embedded.js';
 
 const rootDirectory = fileURLToPath(new URL('..', import.meta.url));
 const expectedKeys = [
@@ -27,9 +28,30 @@ test('manifest matches the JavaScript exports', async () => {
   assert.deepEqual(manifest, assets);
 });
 
+test('embedded assets match the JavaScript exports', () => {
+  assert.deepEqual(
+    embeddedAssets.map(({ contentBase64, ...asset }) => asset),
+    assets,
+  );
+});
+
 test('each manifest file exists in the package', () => {
   for (const asset of assets) {
     assert.equal(existsSync(join(rootDirectory, asset.file)), true, `${asset.file} should exist`);
+  }
+});
+
+test('embedded asset content matches packaged files', async () => {
+  for (const asset of assets) {
+    const fileContent = await readFile(join(rootDirectory, asset.file));
+    const embedded = getEmbeddedAsset(asset.key);
+
+    assert.equal(embedded.contentBase64, fileContent.toString('base64'));
+    assert.equal(
+      Buffer.compare(getEmbeddedAssetContent(asset.key, null), fileContent),
+      0,
+      `${asset.key} embedded bytes differ from ${asset.file}`,
+    );
   }
 });
 
@@ -59,4 +81,5 @@ test('getAsset returns the full asset record', () => {
 
 test('unknown asset keys throw', () => {
   assert.throws(() => getAssetPath('missing'), /Unknown GFM addon asset/);
+  assert.throws(() => getEmbeddedAsset('missing'), /Unknown GFM addon asset/);
 });
