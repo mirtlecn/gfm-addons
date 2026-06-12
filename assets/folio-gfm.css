@@ -152,6 +152,16 @@ body:has(.markdown-body) #toc-layout-content {
   clear: both;
 }
 
+.markdown-body.post-footer {
+  min-height: 0;
+  padding-right: 0;
+  padding-bottom: 0;
+  padding-left: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
 .markdown-body > :first-child,
 .markdown-body > :first-child > .heading-element:first-child {
   margin-top: 0 !important;

@@ -210,6 +210,19 @@ test('renderMarkdownToHtml supports the Folio GFM CSS asset', () => {
   assert.doesNotMatch(html, /@font-face/);
 });
 
+test('renderMarkdownToHtml keeps Folio footers outside the page frame', () => {
+  const html = renderMarkdownToHtml('# Folio', {
+    assetMode: 'inline',
+    css: 'folio_gfm_css',
+    footerHtml: '<a href="https://example.test/contact">Contact</a>',
+  });
+
+  assert.match(html, /<footer class="markdown-body post-footer">\n<a href="https:\/\/example\.test\/contact">Contact<\/a>\n<\/footer>/);
+  assert.match(html, /\.markdown-body\.post-footer\{[^}]*min-height:0[^}]*padding-right:0[^}]*padding-bottom:0[^}]*padding-left:0[^}]*border:0[^}]*background:transparent[^}]*box-shadow:none/s);
+  assert.doesNotMatch(html, /\.markdown-body\.post-footer\{[^}]*padding-top/s);
+  assert.doesNotMatch(html, /\.markdown-body\.post-footer\{[^}]*font-size/s);
+});
+
 test('renderMarkdownToHtml injects highlight assets only for code blocks', () => {
   const html = renderMarkdownToHtml('```js\nconsole.log("hi")\n```', { assetMode: 'local' });
 
