@@ -11,6 +11,7 @@ import { renderMarkdownToHtml } from 'gfm-it';
 
 const html = renderMarkdownToHtml('# Hello', {
   title: 'Hello',
+  canonical: 'https://example.com/hello',
   assetMode: 'remote',
 });
 ```
@@ -32,6 +33,7 @@ const html = renderMarkdownToHtml('# Hello', {
 
 ```bash
 gfm-it README.md --title README --output README.html
+gfm-it README.md --canonical https://example.com/readme
 gfm-it README.md --asset-mode local --asset-base-url /asset/
 gfm-it README.md --footer-html '<a href="/">Home</a>'
 printf '# Hello\n' | gfm-it --title Hello
@@ -43,6 +45,7 @@ gfm-it --help
 ```js
 renderMarkdownToHtml(markdown, {
   title = '',
+  canonical = '',
   css = 'ravel_gfm_css',
   assetMode = 'remote',
   assetBaseUrl = '/asset/',
@@ -53,6 +56,16 @@ renderMarkdownToHtml(markdown, {
   footerHtml = '',
 } = {})
 ```
+
+`gfm-it` automatically derives lightweight SEO metadata from YAML front matter and the Markdown body. YAML front matter is never rendered in the article.
+
+- Title: `title` option, then `yaml.title`, then the first Markdown heading.
+- Canonical URL: `canonical` option, then `yaml.canonical`; when present, emits canonical and `og:url`.
+- Image: `yaml.cover`, then `yaml.image`, then the first absolute `http(s)` Markdown image; when present, emits OpenGraph and Twitter image tags.
+- Description: `yaml.description`, then `yaml.summary`, then body plain text truncated to 160 characters.
+- Dates: `yaml.date` emits `article:published_time`; `yaml.update` emits `article:modified_time`.
+
+The generated head includes key OpenGraph and Twitter Card tags: `og:type`, `og:title`, `og:description`, `og:url`, `og:image`, `twitter:card`, `twitter:title`, `twitter:description`, and `twitter:image` when their source data is available.
 
 `assetMode: 'remote'` uses the remote asset URLs provided by `gfm-addons`. `assetMode: 'local'` emits local URLs such as `/asset/ravel_gfm_css`. `resolveAssetUrl(asset)` overrides both modes.
 

@@ -34,6 +34,8 @@
     "marked-alert": "^2.1.2",
     "marked-footnote": "^1.4.0",
     "marked-gfm-heading-id": "^4.1.3",
-    "marked-highlight": "^2.2.3"
+    "marked-highlight": "^2.2.3",
+    "vfile": "^6.0.3",
+    "vfile-matter": "^5.0.1"
   }
 }

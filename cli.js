@@ -15,6 +15,7 @@ Options:
   -h, --help                   Show this help message.
   -o, --output <path>          Write HTML to a file instead of stdout.
   --title <title>              Set the HTML document title.
+  --canonical <url>            Set the canonical URL and og:url.
   --css <assetKey>             Select the main gfm-addons CSS asset. Default: ravel_gfm_css.
   --asset-mode <remote|local>  Use remote CDN assets or local asset routes. Default: remote.
   --asset-base-url <url>       Base URL for local asset mode. Default: /asset/.
@@ -53,6 +54,7 @@ function parseArgs(args) {
     file: '',
     output: '',
     title: '',
+    canonical: '',
     css: 'ravel_gfm_css',
     assetMode: 'remote',
     assetBaseUrl: '/asset/',
@@ -76,6 +78,11 @@ function parseArgs(args) {
     }
     if (arg === '--title') {
       parsed.title = readRequiredValue(args, index, arg);
+      index += 1;
+      continue;
+    }
+    if (arg === '--canonical') {
+      parsed.canonical = readRequiredValue(args, index, arg);
       index += 1;
       continue;
     }
@@ -143,6 +150,7 @@ async function main() {
     const markdown = args.file ? await readFile(args.file, 'utf8') : await readStdin();
     const html = renderMarkdownToHtml(markdown, {
       title: args.title,
+      canonical: args.canonical,
       css: args.css,
       assetMode: args.assetMode,
       assetBaseUrl: args.assetBaseUrl,
