@@ -24,6 +24,12 @@
     "remoteUrl": "https://cdn.jsdelivr.net/npm/gfm-it@0.1.3/assets/github-gfm.min.css"
   },
   {
+    "key": "folio_gfm_css",
+    "file": "assets/folio-gfm.css",
+    "contentType": "text/css; charset=utf-8",
+    "remoteUrl": "https://cdn.jsdelivr.net/npm/gfm-it@0.1.3/assets/folio-gfm.min.css"
+  },
+  {
     "key": "highlight_light_css",
     "file": "assets/highlight-light.css",
     "contentType": "text/css; charset=utf-8",

@@ -20,6 +20,11 @@ export const assetDefinitions = [
     contentType: 'text/css; charset=utf-8',
   },
   {
+    key: 'folio_gfm_css',
+    file: 'assets/folio-gfm.css',
+    contentType: 'text/css; charset=utf-8',
+  },
+  {
     key: 'highlight_light_css',
     file: 'assets/highlight-light.css',
     contentType: 'text/css; charset=utf-8',

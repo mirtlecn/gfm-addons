@@ -40,7 +40,7 @@ func minifiedAssetPath(file string) string {
 
 func TestAssets(t *testing.T) {
 	items := Assets()
-	if got, want := len(items), 9; got != want {
+	if got, want := len(items), 10; got != want {
 		t.Fatalf("len(Assets()) = %d, want %d", got, want)
 	}
 
@@ -68,6 +68,17 @@ func TestAssets(t *testing.T) {
 	}
 	if highlight.ContentType != "application/javascript; charset=utf-8" {
 		t.Fatalf("highlight_js content type = %q", highlight.ContentType)
+	}
+
+	folio, ok := GetAsset("folio_gfm_css")
+	if !ok {
+		t.Fatal("folio_gfm_css is missing")
+	}
+	if folio.File != "assets/folio-gfm.css" {
+		t.Fatalf("folio_gfm_css file = %q", folio.File)
+	}
+	if folio.RemoteURL != expectedRemoteURL(t, "assets/folio-gfm.css") {
+		t.Fatalf("folio_gfm_css remote URL = %q", folio.RemoteURL)
 	}
 }
 

@@ -21,6 +21,7 @@ const expectedKeys = [
   'whitey_gfm_css',
   'newsprint_gfm_css',
   'github_gfm_css',
+  'folio_gfm_css',
   'highlight_light_css',
   'highlight_dark_css',
   'highlight_js',
@@ -71,10 +72,12 @@ test('embedded asset content matches minified packaged files', async () => {
 
 test('asset helpers return stable file paths, content types, and remote URLs', () => {
   assert.equal(getAssetPath('ravel_gfm_css'), 'assets/ravel-gfm.css');
+  assert.equal(getAssetPath('folio_gfm_css'), 'assets/folio-gfm.css');
   assert.equal(getAssetPath('highlight_js'), 'assets/highlight-core.js');
   assert.equal(getAssetContentType('ravel_gfm_css'), 'text/css; charset=utf-8');
   assert.equal(getAssetContentType('gfm_addons_js'), 'application/javascript; charset=utf-8');
   assert.equal(getAssetRemoteUrl('ravel_gfm_css'), expectedRemoteUrl('assets/ravel-gfm.css'));
+  assert.equal(getAssetRemoteUrl('folio_gfm_css'), expectedRemoteUrl('assets/folio-gfm.css'));
   assert.deepEqual(getAsset('gfm_addons_js'), {
     key: 'gfm_addons_js',
     file: 'assets/gfm-addons.js',

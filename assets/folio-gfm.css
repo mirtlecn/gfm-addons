@@ -1,0 +1,669 @@
+.markdown-body {
+  --folio-bg: #e9e6e1;
+  --folio-page-bg: linear-gradient(180deg, #ece9e4 0%, #e6e2dc 100%);
+  --folio-paper: #fffdfa;
+  --folio-shadow: rgba(74, 59, 47, 0.12);
+  --folio-border: rgba(116, 93, 74, 0.16);
+  --folio-text: #2f2a25;
+  --folio-muted: #8d7d70;
+  --folio-heading: #1f1a16;
+  --folio-link: #b17b4d;
+  --folio-link-hover: #8e5f36;
+  --folio-code-bg: #f5efe8;
+  --folio-code-block-bg: #fcf8f3;
+  --folio-code-border: rgba(116, 93, 74, 0.16);
+  --folio-quote-border: rgba(177, 123, 77, 0.42);
+  --folio-table-border: rgba(116, 93, 74, 0.2);
+  --folio-hr: rgba(116, 93, 74, 0.18);
+  --folio-toc-bg: #faf6f0;
+  --folio-alert-bg: #faf6f0;
+  --folio-ui: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial,
+    sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+  --folio-display: "Aptos Display", Aptos, "Segoe UI", "Helvetica Neue", Arial,
+    "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei UI", "Microsoft YaHei",
+    DengXian, "Noto Sans CJK SC", "Source Han Sans SC", "WenQuanYi Micro Hei",
+    sans-serif;
+  --folio-serif: Georgia, Cambria, "Times New Roman", "Songti SC", SimSun,
+    "Noto Serif CJK SC", "Liberation Serif", "DejaVu Serif", serif;
+  --folio-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+    "DejaVu Sans Mono", "Courier New", monospace;
+  --folio-code-plain: var(--folio-text);
+  --folio-code-keyword: #6e56b0;
+  --folio-code-string: #4f8a67;
+  --folio-code-number: #b77d45;
+  --folio-code-function: #33529d;
+  --folio-code-type: #33529d;
+  --folio-code-comment: var(--folio-muted);
+  --folio-code-operator: #b65252;
+  box-sizing: border-box;
+  max-width: 210mm;
+  min-height: 297mm;
+  margin: 0 auto;
+  padding: 24mm 20mm 26mm;
+  border: 1px solid var(--folio-border);
+  background: var(--folio-paper);
+  box-shadow: 0 14px 42px var(--folio-shadow);
+  color: var(--folio-text);
+  font-family: var(--folio-serif);
+  font-size: 17px;
+  font-weight: 400;
+  line-height: 1.82;
+  letter-spacing: 0;
+  word-wrap: break-word;
+  color-scheme: light;
+  text-size-adjust: 100%;
+  -webkit-text-size-adjust: 100%;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body:has(.markdown-body) {
+  box-sizing: border-box;
+  max-width: none;
+  min-height: 100vh;
+  margin: 0;
+  padding: 28px 24px 42px;
+  background: linear-gradient(180deg, #ece9e4 0%, #e6e2dc 100%);
+  color: #2f2a25;
+  font-family: Georgia, Cambria, "Times New Roman", "Songti SC", SimSun, "Noto Serif CJK SC",
+    "Liberation Serif", "DejaVu Serif", serif;
+}
+
+body:has(.markdown-body) #toc-layout-content {
+  max-width: 210mm;
+  margin: 0 auto;
+}
+
+@media (prefers-color-scheme: dark) {
+  body:has(.markdown-body) {
+    background: radial-gradient(circle at top, #191919 0%, #131313 68%);
+    color: #d6dbe5;
+  }
+
+  .markdown-body {
+    --folio-bg: #131313;
+    --folio-page-bg: radial-gradient(circle at top, #191919 0%, #131313 68%);
+    --folio-paper: #1a1a1a;
+    --folio-shadow: rgba(0, 0, 0, 0.46);
+    --folio-border: rgba(214, 219, 229, 0.1);
+    --folio-text: #d6dbe5;
+    --folio-muted: #b9b9b9;
+    --folio-heading: #ffffff;
+    --folio-link: #1081d6;
+    --folio-link-hover: #2a84d2;
+    --folio-code-bg: #1f1f1f;
+    --folio-code-block-bg: #1f1f1f;
+    --folio-code-border: rgba(214, 219, 229, 0.12);
+    --folio-quote-border: rgba(16, 129, 214, 0.42);
+    --folio-table-border: rgba(214, 219, 229, 0.14);
+    --folio-hr: rgba(214, 219, 229, 0.14);
+    --folio-toc-bg: #1b1b1b;
+    --folio-alert-bg: #1b1b1b;
+    --folio-code-plain: #d6dbe5;
+    --folio-code-keyword: #8f8cf2;
+    --folio-code-string: #1dd361;
+    --folio-code-number: #f3bd09;
+    --folio-code-function: #4da6ff;
+    --folio-code-type: #4da6ff;
+    --folio-code-comment: #b9b9b9;
+    --folio-code-operator: #ff6b66;
+    color-scheme: dark;
+  }
+}
+
+[data-theme="dark"] .markdown-body,
+.markdown-body[data-theme="dark"] {
+  --folio-bg: #131313;
+  --folio-page-bg: radial-gradient(circle at top, #191919 0%, #131313 68%);
+  --folio-paper: #1a1a1a;
+  --folio-shadow: rgba(0, 0, 0, 0.46);
+  --folio-border: rgba(214, 219, 229, 0.1);
+  --folio-text: #d6dbe5;
+  --folio-muted: #b9b9b9;
+  --folio-heading: #ffffff;
+  --folio-link: #1081d6;
+  --folio-link-hover: #2a84d2;
+  --folio-code-bg: #1f1f1f;
+  --folio-code-block-bg: #1f1f1f;
+  --folio-code-border: rgba(214, 219, 229, 0.12);
+  --folio-quote-border: rgba(16, 129, 214, 0.42);
+  --folio-table-border: rgba(214, 219, 229, 0.14);
+  --folio-hr: rgba(214, 219, 229, 0.14);
+  --folio-toc-bg: #1b1b1b;
+  --folio-alert-bg: #1b1b1b;
+  --folio-code-plain: #d6dbe5;
+  --folio-code-keyword: #8f8cf2;
+  --folio-code-string: #1dd361;
+  --folio-code-number: #f3bd09;
+  --folio-code-function: #4da6ff;
+  --folio-code-type: #4da6ff;
+  --folio-code-comment: #b9b9b9;
+  --folio-code-operator: #ff6b66;
+  color-scheme: dark;
+}
+
+.markdown-body::before,
+.markdown-body::after {
+  display: table;
+  content: "";
+}
+
+.markdown-body::after {
+  clear: both;
+}
+
+.markdown-body > :first-child,
+.markdown-body > :first-child > .heading-element:first-child {
+  margin-top: 0 !important;
+}
+
+.markdown-body > :last-child {
+  margin-bottom: 0 !important;
+}
+
+.markdown-body details,
+.markdown-body figcaption,
+.markdown-body figure {
+  display: block;
+}
+
+.markdown-body summary {
+  display: list-item;
+}
+
+.markdown-body [hidden] {
+  display: none !important;
+}
+
+.markdown-body h1,
+.markdown-body h2,
+.markdown-body h3,
+.markdown-body h4,
+.markdown-body h5,
+.markdown-body h6 {
+  margin-top: 1.7em;
+  margin-bottom: 0.5em;
+  border-bottom: 0;
+  color: var(--folio-heading);
+  font-family: var(--folio-display);
+  font-weight: 700;
+  line-height: 1.08;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.markdown-body h1 {
+  margin-top: 0;
+  font-size: 4rem;
+}
+
+.markdown-body h2 {
+  font-size: 2.4rem;
+}
+
+.markdown-body h3 {
+  font-size: 1.8rem;
+}
+
+.markdown-body h4,
+.markdown-body h5,
+.markdown-body h6 {
+  font-size: 1.3rem;
+}
+
+.markdown-body p,
+.markdown-body ul,
+.markdown-body ol,
+.markdown-body blockquote,
+.markdown-body table {
+  font-size: 1.085rem;
+}
+
+.markdown-body p,
+.markdown-body blockquote,
+.markdown-body ul,
+.markdown-body ol,
+.markdown-body dl,
+.markdown-body table,
+.markdown-body pre,
+.markdown-body details,
+.markdown-body figure {
+  margin-top: 0;
+  margin-bottom: 1.28em;
+}
+
+.markdown-body strong {
+  font-weight: 700;
+}
+
+.markdown-body em,
+.markdown-body dfn {
+  color: var(--folio-muted);
+  font-style: italic;
+}
+
+.markdown-body a {
+  color: var(--folio-link);
+  text-decoration: none;
+}
+
+.markdown-body a:hover {
+  color: var(--folio-link-hover);
+}
+
+.markdown-body a:not([href]) {
+  color: inherit;
+  text-decoration: none;
+}
+
+.markdown-body mark {
+  padding: 0.08em 0.18em;
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--folio-link) 22%, transparent);
+  color: inherit;
+}
+
+.markdown-body small {
+  font-size: 90%;
+}
+
+.markdown-body sub,
+.markdown-body sup {
+  position: relative;
+  font-size: 75%;
+  line-height: 0;
+  vertical-align: baseline;
+}
+
+.markdown-body sub {
+  bottom: -0.25em;
+}
+
+.markdown-body sup {
+  top: -0.5em;
+}
+
+.markdown-body hr {
+  height: 0;
+  margin: 2rem 0;
+  border: 0;
+  border-bottom: 1px solid var(--folio-hr);
+  background: transparent;
+  overflow: hidden;
+}
+
+.markdown-body blockquote {
+  margin: 1.6rem 0;
+  padding: 0.1rem 0 0.1rem 1.15rem;
+  border-left: 3px solid var(--folio-quote-border);
+  color: var(--folio-muted);
+  line-height: inherit;
+}
+
+.markdown-body blockquote *,
+.markdown-body blockquote p,
+.markdown-body blockquote span,
+.markdown-body blockquote li {
+  line-height: inherit !important;
+}
+
+.markdown-body blockquote > :first-child {
+  margin-top: 0;
+}
+
+.markdown-body blockquote > :last-child {
+  margin-bottom: 0;
+}
+
+.markdown-body ul,
+.markdown-body ol {
+  padding-left: 1.4em;
+}
+
+.markdown-body ol ol,
+.markdown-body ol ul,
+.markdown-body ul ol,
+.markdown-body ul ul {
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.markdown-body li {
+  margin: 0.22em 0;
+}
+
+.markdown-body li > p {
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.markdown-body img {
+  box-sizing: content-box;
+  max-width: 100%;
+  border-style: none;
+}
+
+.markdown-body table {
+  display: block;
+  width: max-content;
+  max-width: 100%;
+  margin: 1.6rem 0 2rem;
+  border-collapse: collapse;
+  border-spacing: 0;
+  overflow: auto;
+  font-variant-numeric: tabular-nums;
+}
+
+.markdown-body table th,
+.markdown-body table td,
+.markdown-body td,
+.markdown-body th {
+  padding: 0.7rem 0.4rem 0.7rem 0;
+  border: 0;
+  border-bottom: 1px solid var(--folio-table-border);
+  text-align: left;
+}
+
+.markdown-body table th {
+  color: var(--folio-heading);
+  font-family: var(--folio-display);
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.markdown-body table tr {
+  background: var(--folio-paper);
+}
+
+.markdown-body table td > :last-child {
+  margin-bottom: 0;
+}
+
+.markdown-body code,
+.markdown-body tt,
+.markdown-body samp,
+.markdown-body kbd,
+.markdown-body pre {
+  font-family: var(--folio-mono) !important;
+}
+
+.markdown-body code,
+.markdown-body tt,
+.markdown-body samp {
+  padding: 0.08em 0.32em;
+  border: 1px solid var(--folio-code-border);
+  border-radius: 3px;
+  background: var(--folio-code-bg);
+  color: var(--folio-code-number);
+  font-size: 0.92em;
+  white-space: break-spaces;
+}
+
+.markdown-body pre,
+.markdown-body .highlight pre {
+  margin: 1.45rem 0 1.75rem;
+  padding: 0.95rem 1rem;
+  border: 1px solid var(--folio-code-border);
+  border-radius: 4px;
+  background: var(--folio-code-block-bg);
+  color: var(--folio-code-plain);
+  font-size: 0.92em;
+  line-height: 1.7;
+  overflow: auto;
+  word-wrap: normal;
+}
+
+.markdown-body pre code,
+.markdown-body pre tt,
+.markdown-body pre > code {
+  display: inline;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  overflow: visible;
+  white-space: pre;
+  word-break: normal;
+  word-wrap: normal;
+}
+
+.markdown-body .hljs {
+  background: transparent;
+  color: var(--folio-code-plain);
+}
+
+.markdown-body .hljs-keyword,
+.markdown-body .hljs-built_in,
+.markdown-body .hljs-tag {
+  color: var(--folio-code-keyword);
+}
+
+.markdown-body .hljs-string,
+.markdown-body .hljs-regexp {
+  color: var(--folio-code-string);
+}
+
+.markdown-body .hljs-number,
+.markdown-body .hljs-literal {
+  color: var(--folio-code-number);
+}
+
+.markdown-body .hljs-title,
+.markdown-body .hljs-section,
+.markdown-body .hljs-function {
+  color: var(--folio-code-function);
+}
+
+.markdown-body .hljs-type,
+.markdown-body .hljs-class {
+  color: var(--folio-code-type);
+}
+
+.markdown-body .hljs-comment,
+.markdown-body .hljs-quote {
+  color: var(--folio-code-comment);
+}
+
+.markdown-body .hljs-operator,
+.markdown-body .hljs-meta {
+  color: var(--folio-code-operator);
+}
+
+.markdown-body kbd {
+  display: inline-block;
+  padding: 0.2em 0.45em;
+  border: 1px solid var(--folio-table-border);
+  border-bottom-color: var(--folio-quote-border);
+  border-radius: 6px;
+  background: var(--folio-code-bg);
+  color: var(--folio-text);
+  font-size: 0.78em;
+  line-height: 1.2;
+  vertical-align: middle;
+}
+
+.markdown-body .contains-task-list,
+.markdown-body .task-list {
+  padding-left: 1.35rem;
+}
+
+.markdown-body .task-list-item {
+  list-style-type: none;
+}
+
+.markdown-body .task-list-item-checkbox {
+  margin: 0 0.2em 0.25em -1.35em;
+  vertical-align: middle;
+  accent-color: var(--folio-link);
+}
+
+.markdown-body .markdown-alert {
+  margin: 1.5rem 0;
+  padding: 0.75rem 1rem;
+  border-left: 0.22em solid var(--folio-quote-border);
+  border-radius: 0 4px 4px 0;
+  background: var(--folio-alert-bg);
+  color: inherit;
+}
+
+.markdown-body .markdown-alert > :first-child {
+  margin-top: 0;
+}
+
+.markdown-body .markdown-alert > :last-child {
+  margin-bottom: 0;
+}
+
+.markdown-body .markdown-alert-title {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--folio-heading);
+  font-family: var(--folio-ui);
+  font-weight: 600;
+  line-height: 1;
+}
+
+.markdown-body .markdown-alert.markdown-alert-note {
+  border-left-color: var(--folio-link);
+}
+
+.markdown-body .markdown-alert.markdown-alert-tip {
+  border-left-color: #4f8a67;
+}
+
+.markdown-body .markdown-alert.markdown-alert-important {
+  border-left-color: #6e56b0;
+}
+
+.markdown-body .markdown-alert.markdown-alert-warning {
+  border-left-color: #b77d45;
+}
+
+.markdown-body .markdown-alert.markdown-alert-caution {
+  border-left-color: #b65252;
+}
+
+.markdown-body .footnotes {
+  margin-top: 2rem;
+  border-top: 1px solid var(--folio-table-border);
+  color: var(--folio-muted);
+  font-size: 0.9em;
+}
+
+.markdown-body .footnotes ol {
+  padding-left: 1rem;
+}
+
+.markdown-body .footnotes li:target {
+  color: var(--folio-text);
+}
+
+.markdown-body [data-footnote-ref]::before {
+  content: "[";
+}
+
+.markdown-body [data-footnote-ref]::after {
+  content: "]";
+}
+
+.markdown-body .md-toc,
+.markdown-body nav[role="doc-toc"] {
+  margin: 1.8rem 0 2.2rem;
+  padding: 1.15rem 1.25rem 1.2rem;
+  border: 1px solid var(--folio-border);
+  border-radius: 4px;
+  background: var(--folio-toc-bg);
+}
+
+.markdown-body .md-toc::before,
+.markdown-body nav[role="doc-toc"]::before {
+  display: block;
+  margin-bottom: 0.7rem;
+  color: var(--folio-heading);
+  content: "Contents";
+  font-family: var(--folio-ui);
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.markdown-body .md-toc-content,
+.markdown-body .md-toc-content a,
+.markdown-body nav[role="doc-toc"],
+.markdown-body nav[role="doc-toc"] a {
+  color: var(--folio-text);
+  font-family: var(--folio-ui);
+  font-size: 0.95rem;
+  line-height: 1.65;
+}
+
+.markdown-body .md-toc-content a:hover,
+.markdown-body nav[role="doc-toc"] a:hover {
+  color: var(--folio-link-hover);
+  text-decoration: none;
+}
+
+.markdown-body .anchor {
+  float: left;
+  margin-left: -20px;
+  padding-right: 4px;
+  line-height: 1;
+}
+
+.markdown-body h1 .octicon-link,
+.markdown-body h2 .octicon-link,
+.markdown-body h3 .octicon-link,
+.markdown-body h4 .octicon-link,
+.markdown-body h5 .octicon-link,
+.markdown-body h6 .octicon-link {
+  color: var(--folio-muted);
+  visibility: hidden;
+}
+
+.markdown-body h1:hover .anchor .octicon-link,
+.markdown-body h2:hover .anchor .octicon-link,
+.markdown-body h3:hover .anchor .octicon-link,
+.markdown-body h4:hover .anchor .octicon-link,
+.markdown-body h5:hover .anchor .octicon-link,
+.markdown-body h6:hover .anchor .octicon-link {
+  visibility: visible;
+}
+
+@media screen and (max-width: 980px) {
+  body:has(.markdown-body) {
+    padding: 0;
+    background: #fffdfa;
+  }
+
+  .markdown-body {
+    max-width: none;
+    min-height: auto;
+    padding: 1.6rem clamp(25px, 6vw, 44px) 2.25rem;
+    border: 0;
+    box-shadow: none;
+  }
+
+  body:has(.markdown-body) #toc-layout-content {
+    max-width: none;
+  }
+
+  .markdown-body h1 {
+    font-size: 3rem;
+  }
+
+  .markdown-body h2 {
+    font-size: 2rem;
+  }
+}
+
+@media screen and (max-width: 980px) and (prefers-color-scheme: dark) {
+  body:has(.markdown-body) {
+    background: #1a1a1a;
+  }
+}

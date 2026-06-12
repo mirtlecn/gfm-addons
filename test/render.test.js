@@ -199,6 +199,17 @@ test('renderMarkdownToHtml inlines assets when requested', () => {
   assert.doesNotMatch(html, /src="\/asset\//);
 });
 
+test('renderMarkdownToHtml supports the Folio GFM CSS asset', () => {
+  const html = renderMarkdownToHtml('# Folio', { assetMode: 'inline', css: 'folio_gfm_css' });
+
+  assert.match(html, /<article class="markdown-body">/);
+  assert.match(html, /<style data-gfm-asset="folio_gfm_css">/);
+  assert.match(html, /body:has\(\.markdown-body\)/);
+  assert.match(html, /#toc-layout-content/);
+  assert.doesNotMatch(html, /fonts\.googleapis\.com/);
+  assert.doesNotMatch(html, /@font-face/);
+});
+
 test('renderMarkdownToHtml injects highlight assets only for code blocks', () => {
   const html = renderMarkdownToHtml('```js\nconsole.log("hi")\n```', { assetMode: 'local' });
 
@@ -277,6 +288,7 @@ test('CLI prints help with --help and -h', async () => {
   assert.match(help.stdout, /^Usage: gfm-it \[file\] \[options\]/);
   assert.match(help.stdout, /--canonical <url>/);
   assert.match(help.stdout, /--fallback-image <true\|false>/);
+  assert.match(help.stdout, /-c, --css <assetKey>/);
   assert.match(help.stdout, /--asset-mode <remote\|local\|inline>/);
   assert.match(help.stdout, /Default: inline/);
   assert.match(shortHelp.stdout, /^Usage: gfm-it \[file\] \[options\]/);
@@ -290,6 +302,15 @@ test('CLI reads stdin when file is omitted', async () => {
   assert.match(result.stdout, /From stdin/);
   assert.match(result.stdout, /<style data-gfm-asset="ravel_gfm_css">/);
   assert.doesNotMatch(result.stdout, /cdn\.jsdelivr\.net/);
+  assert.equal(result.stderr, '');
+});
+
+test('CLI accepts -c as a CSS asset alias', async () => {
+  const result = await runCliWithInput(['-c', 'folio_gfm_css'], '# Folio');
+
+  assert.equal(result.code, 0);
+  assert.match(result.stdout, /<style data-gfm-asset="folio_gfm_css">/);
+  assert.match(result.stdout, /body:has\(\.markdown-body\)/);
   assert.equal(result.stderr, '');
 });
 

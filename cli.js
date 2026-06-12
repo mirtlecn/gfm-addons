@@ -17,7 +17,7 @@ Options:
   --title <title>              Set the HTML document title.
   --canonical <url>            Set the canonical URL and og:url.
   --fallback-image <true|false> Use a stable grayscale Picsum image when no image is found. Default: false.
-  --css <assetKey>             Select the main gfm-addons CSS asset. Default: ravel_gfm_css.
+  -c, --css <assetKey>         Select the main gfm-addons CSS asset. Default: ravel_gfm_css.
   --asset-mode <remote|local|inline> Use remote CDN assets, local asset routes, or inline assets. Default: inline.
   --asset-base-url <url>       Base URL for local asset mode. Default: /asset/.
   --extra-css <css>            Append raw CSS inside the generated style block.
@@ -103,7 +103,7 @@ function parseArgs(args) {
       index += 1;
       continue;
     }
-    if (arg === '--css') {
+    if (arg === '-c' || arg === '--css') {
       parsed.css = readRequiredValue(args, index, arg);
       index += 1;
       continue;
