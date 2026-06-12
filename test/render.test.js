@@ -10,6 +10,7 @@ import {
   getAsset,
   getGfmAssetUrl,
   normalizeCssAssetKey,
+  normalizeCssReference,
   renderMarkdownToHtml,
 } from '../index.js';
 
@@ -213,6 +214,25 @@ test('renderMarkdownToHtml normalizes CSS aliases before rendering', () => {
   assert.match(html, /<style data-gfm-asset="github_gfm_css">/);
 });
 
+test('renderMarkdownToHtml accepts CSS hrefs in remote asset mode', () => {
+  const cssUrl = 'https://example.com/hi.css?raw=true';
+  const httpUrl = 'http://abc.com/a.css';
+  const html = renderMarkdownToHtml('# Remote', { css: cssUrl });
+  const localHtml = renderMarkdownToHtml('# Local', { css: '../css' });
+
+  assert.deepEqual(normalizeCssReference(cssUrl, { assetMode: 'remote' }), {
+    type: 'href',
+    href: cssUrl,
+  });
+  assert.deepEqual(normalizeCssReference(httpUrl, { assetMode: 'remote' }), {
+    type: 'href',
+    href: httpUrl,
+  });
+  assert.match(html, /<link rel="stylesheet" href="https:\/\/example\.com\/hi\.css\?raw=true">/);
+  assert.match(localHtml, /<link rel="stylesheet" href="\.\.\/css">/);
+  assert.doesNotMatch(html, /ravel-gfm\.min\.css/);
+});
+
 test('renderMarkdownToHtml rejects unsupported CSS assets before parsing markdown', () => {
   const markdown = {
     toString() {
@@ -227,6 +247,14 @@ test('renderMarkdownToHtml rejects unsupported CSS assets before parsing markdow
   assert.throws(
     () => normalizeCssAssetKey('highlight_light_css'),
     /Unsupported CSS asset: highlight_light_css/,
+  );
+  assert.throws(
+    () => renderMarkdownToHtml(markdown, { assetMode: 'inline', css: 'https://example.com/hi.css?raw=true' }),
+    /CSS hrefs require assetMode remote/,
+  );
+  assert.throws(
+    () => normalizeCssReference('https://cdn.example.com/theme.js', { assetMode: 'remote' }),
+    /Unsupported CSS URL: https:\/\/cdn\.example\.com\/theme\.js/,
   );
 });
 
@@ -339,8 +367,8 @@ test('CLI prints help with --help and -h', async () => {
   assert.match(help.stdout, /Reads piped stdin when omitted/);
   assert.match(help.stdout, /--canonical <url>/);
   assert.match(help.stdout, /--fallback-image <true\|false>/);
-  assert.match(help.stdout, /-c, --css <assetKey>/);
-  assert.match(help.stdout, /Supported: ravel, whitey, newsprint, github, folio \(or ravel_gfm_css, whitey_gfm_css, newsprint_gfm_css, github_gfm_css, folio_gfm_css\)/);
+  assert.match(help.stdout, /-c, --css <assetKey\|href>/);
+  assert.match(help.stdout, /Supported: ravel, whitey, newsprint, github, folio \(or ravel_gfm_css, whitey_gfm_css, newsprint_gfm_css, github_gfm_css, folio_gfm_css\); remote mode also accepts stylesheet hrefs/);
   assert.match(help.stdout, /--asset-mode <remote\|local\|inline>/);
   assert.match(help.stdout, /Default: inline/);
   assert.match(shortHelp.stdout, /^Usage: gfm-it \[file\] \[options\]/);
@@ -381,6 +409,21 @@ test('CLI accepts -c as a CSS asset alias', async () => {
   assert.equal(aliasResult.code, 0);
   assert.match(aliasResult.stdout, /<style data-gfm-asset="github_gfm_css">/);
   assert.equal(aliasResult.stderr, '');
+});
+
+test('CLI accepts CSS hrefs only in remote asset mode', async () => {
+  const result = await runCliWithInput(['--asset-mode', 'remote', '-c', 'https://example.com/hi.css?raw=true'], '# Remote');
+  const localResult = await runCliWithInput(['--asset-mode', 'remote', '-c', '../css'], '# Local');
+  const inlineResult = await runCliWithInput(['-c', 'http://abc.com/a.css'], '# Remote');
+
+  assert.equal(result.code, 0);
+  assert.match(result.stdout, /<link rel="stylesheet" href="https:\/\/example\.com\/hi\.css\?raw=true">/);
+  assert.doesNotMatch(result.stdout, /ravel-gfm\.min\.css/);
+  assert.equal(result.stderr, '');
+  assert.equal(localResult.code, 0);
+  assert.match(localResult.stdout, /<link rel="stylesheet" href="\.\.\/css">/);
+  assert.equal(inlineResult.code, 1);
+  assert.match(inlineResult.stderr, /CSS hrefs require assetMode remote/);
 });
 
 test('CLI rejects unsupported CSS assets during argument parsing', async () => {

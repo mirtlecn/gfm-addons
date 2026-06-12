@@ -39,7 +39,7 @@ const gfmCssAssetAliasMap = new Map(
 );
 
 export function formatSupportedCssAssets() {
-  return `${gfmCssAssetAliases.join(', ')} (or ${gfmCssAssetKeys.join(', ')})`;
+  return `${gfmCssAssetAliases.join(', ')} (or ${gfmCssAssetKeys.join(', ')}); remote mode also accepts stylesheet hrefs`;
 }
 
 export function normalizeCssAssetKey(css = defaultCssAssetKey) {
@@ -52,6 +52,53 @@ export function normalizeCssAssetKey(css = defaultCssAssetKey) {
   }
 
   return normalized;
+}
+
+function hasCssPath(value) {
+  return value.split(/[?#]/, 1)[0].toLowerCase().endsWith('.css');
+}
+
+function isRemoteCssHref(value) {
+  try {
+    const url = new URL(value);
+    return (url.protocol === 'http:' || url.protocol === 'https:')
+      && Boolean(url.hostname)
+      && hasCssPath(url.pathname);
+  } catch {
+    return false;
+  }
+}
+
+function isUrlLike(value) {
+  try {
+    const url = new URL(value);
+    return Boolean(url.protocol);
+  } catch {
+    return false;
+  }
+}
+
+function isLocalCssHref(value) {
+  return hasCssPath(value) || value.startsWith('/') || value.startsWith('./') || value.startsWith('../');
+}
+
+export function normalizeCssReference(css = defaultCssAssetKey, options = {}) {
+  const requested = css === undefined || css === null ? '' : String(css).trim();
+  const candidate = requested || defaultCssAssetKey;
+  const assetMode = options.assetMode || defaultAssetMode;
+
+  if (isRemoteCssHref(candidate) || (!isUrlLike(candidate) && isLocalCssHref(candidate))) {
+    if (assetMode !== 'remote') {
+      throw new Error(`CSS hrefs require assetMode remote: ${candidate}`);
+    }
+    return { type: 'href', href: candidate };
+  }
+
+  if (isUrlLike(candidate)) {
+    throw new Error(`Unsupported CSS URL: ${candidate}. CSS URLs must use http or https and end with .css`);
+  }
+
+  return { type: 'asset', key: normalizeCssAssetKey(candidate) };
 }
 
 const metadataLexer = new Marked({ gfm: true, breaks: false });
@@ -425,6 +472,13 @@ function renderStylesheetAsset(key, options, media = '') {
   return stylesheetLink(getGfmAssetUrl(key, options), media);
 }
 
+function renderMainStylesheet(cssReference, options) {
+  if (cssReference.type === 'href') {
+    return stylesheetLink(cssReference.href);
+  }
+  return renderStylesheetAsset(cssReference.key, options);
+}
+
 function renderScriptAsset(key, options) {
   const asset = getAsset(key);
 
@@ -447,14 +501,15 @@ export function renderMarkdownToHtml(markdown, options = {}) {
       bodyClass = '',
       footerHtml = '',
     } = options;
-    const normalizedCss = normalizeCssAssetKey(css);
     const assetOptions = normalizeAssetOptions(options);
+    const cssReference = normalizeCssReference(css, assetOptions);
+    const normalizedCss = cssReference.type === 'asset' ? cssReference.key : cssReference.href;
     const metadata = extractMarkdownMetadata(markdown, { title, canonical, fallbackImage });
     const htmlBody = createMarkdownRenderer().parse(metadata.content);
     const normalizedFooterHtml = normalizeFooterHtml(footerHtml);
     const headingCount = countHeadings(htmlBody);
     const codeBlocksPresent = hasHighlightedCode(htmlBody);
-    const headLinks = [renderStylesheetAsset(normalizedCss, assetOptions)];
+    const headLinks = [renderMainStylesheet(cssReference, assetOptions)];
     const bodyScripts = [];
 
     if (headingCount >= 2) {

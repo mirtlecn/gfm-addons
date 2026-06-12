@@ -3,6 +3,7 @@ package gfmit
 import (
 	"fmt"
 	"html"
+	"net/url"
 	"strings"
 )
 
@@ -44,6 +45,7 @@ type RenderSlots struct {
 type normalizedRenderOptions struct {
 	RenderOptions
 	CSS          string
+	CSSHref      string
 	AssetMode    string
 	AssetBaseURL string
 }
@@ -72,13 +74,13 @@ func RenderMarkdownToHTML(markdown string, options RenderOptions) (string, error
 }
 
 func normalizeRenderOptions(options RenderOptions) (normalizedRenderOptions, error) {
-	css, err := normalizeCSSAssetKey(options.CSS)
-	if err != nil {
-		return normalizedRenderOptions{}, err
-	}
 	assetMode := strings.TrimSpace(options.AssetMode)
 	if assetMode == "" {
 		assetMode = defaultAssetMode
+	}
+	css, cssHref, err := normalizeCSSReference(options.CSS, assetMode)
+	if err != nil {
+		return normalizedRenderOptions{}, err
 	}
 	assetBaseURL := options.AssetBaseURL
 	if assetBaseURL == "" {
@@ -87,6 +89,7 @@ func normalizeRenderOptions(options RenderOptions) (normalizedRenderOptions, err
 	return normalizedRenderOptions{
 		RenderOptions: options,
 		CSS:           css,
+		CSSHref:       cssHref,
 		AssetMode:     assetMode,
 		AssetBaseURL:  assetBaseURL,
 	}, nil
@@ -132,8 +135,52 @@ func normalizeCSSAssetKey(css string) (string, error) {
 	return "", fmt.Errorf("unsupported CSS asset: %s (supported: %s)", requested, formatSupportedCSSAssets())
 }
 
+func hasCSSPath(value string) bool {
+	path := strings.SplitN(value, "?", 2)[0]
+	path = strings.SplitN(path, "#", 2)[0]
+	return strings.HasSuffix(strings.ToLower(path), ".css")
+}
+
+func isRemoteCSSHref(value string) bool {
+	parsed, err := url.Parse(value)
+	if err != nil {
+		return false
+	}
+	return (parsed.Scheme == "http" || parsed.Scheme == "https") && parsed.Host != "" && hasCSSPath(parsed.Path)
+}
+
+func isURLLike(value string) bool {
+	parsed, err := url.Parse(value)
+	return err == nil && parsed.Scheme != ""
+}
+
+func isLocalCSSHref(value string) bool {
+	return hasCSSPath(value) || strings.HasPrefix(value, "/") || strings.HasPrefix(value, "./") || strings.HasPrefix(value, "../")
+}
+
+func normalizeCSSReference(css string, assetMode string) (string, string, error) {
+	requested := strings.TrimSpace(css)
+	if requested == "" {
+		requested = defaultCSSAssetKey
+	}
+	if isRemoteCSSHref(requested) || (!isURLLike(requested) && isLocalCSSHref(requested)) {
+		if assetMode != assetModeRemote {
+			return "", "", fmt.Errorf("CSS hrefs require asset mode remote: %s", requested)
+		}
+		return "", requested, nil
+	}
+	if isURLLike(requested) {
+		return "", "", fmt.Errorf("unsupported CSS URL: %s (CSS URLs must use http or https and end with .css)", requested)
+	}
+	cssKey, err := normalizeCSSAssetKey(requested)
+	if err != nil {
+		return "", "", err
+	}
+	return cssKey, "", nil
+}
+
 func dynamicAssets(htmlBody string, options normalizedRenderOptions) ([]string, []string, error) {
-	baseCSS, err := renderStylesheetAsset(options.CSS, options, "")
+	baseCSS, err := renderMainStylesheet(options)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -181,6 +228,13 @@ func dynamicAssets(htmlBody string, options normalizedRenderOptions) ([]string, 
 	}
 
 	return headLinks, bodyScripts, nil
+}
+
+func renderMainStylesheet(options normalizedRenderOptions) (string, error) {
+	if options.CSSHref != "" {
+		return stylesheetLink(options.CSSHref, ""), nil
+	}
+	return renderStylesheetAsset(options.CSS, options, "")
 }
 
 func renderStylesheetAsset(key string, options normalizedRenderOptions, media string) (string, error) {

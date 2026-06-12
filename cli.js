@@ -2,7 +2,7 @@
 
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname } from 'node:path';
-import { formatSupportedCssAssets, normalizeCssAssetKey, renderMarkdownToHtml } from './index.js';
+import { formatSupportedCssAssets, normalizeCssReference, renderMarkdownToHtml } from './index.js';
 
 const usage = `Usage: gfm-it [file] [options]
 
@@ -17,7 +17,7 @@ Options:
   --title <title>              Set the HTML document title.
   --canonical <url>            Set the canonical URL and og:url.
   --fallback-image <true|false> Use a stable grayscale Picsum image when no image is found. Default: false.
-  -c, --css <assetKey>         Select the main GFM CSS asset. Default: ravel_gfm_css.
+  -c, --css <assetKey|href>    Select the main GFM CSS asset. Default: ravel_gfm_css.
                                Supported: ${formatSupportedCssAssets()}.
   --asset-mode <remote|local|inline> Use remote CDN assets, local asset routes, or inline assets. Default: inline.
   --asset-base-url <url>       Base URL for local asset mode. Default: /asset/.
@@ -146,7 +146,8 @@ function parseArgs(args) {
   if (!['remote', 'local', 'inline'].includes(parsed.assetMode)) {
     throw new Error(`--asset-mode must be remote, local, or inline, got: ${parsed.assetMode}`);
   }
-  parsed.css = normalizeCssAssetKey(parsed.css);
+  const cssReference = normalizeCssReference(parsed.css, { assetMode: parsed.assetMode });
+  parsed.css = cssReference.type === 'asset' ? cssReference.key : cssReference.href;
 
   return parsed;
 }

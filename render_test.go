@@ -86,6 +86,27 @@ func TestRenderMarkdownToHTMLNormalizesCSSAlias(t *testing.T) {
 	assertContains(t, html, `<style data-gfm-asset="github_gfm_css">`)
 }
 
+func TestRenderMarkdownToHTMLAcceptsCSSHref(t *testing.T) {
+	html, err := RenderMarkdownToHTML("# Remote", RenderOptions{CSS: "http://abc.com/a.css"})
+	if err != nil {
+		t.Fatalf("RenderMarkdownToHTML() error = %v", err)
+	}
+	assertContains(t, html, `<link rel="stylesheet" href="http://abc.com/a.css">`)
+	assertNotContains(t, html, "ravel-gfm.min.css")
+
+	localHTML, err := RenderMarkdownToHTML("# Local", RenderOptions{CSS: "../css"})
+	if err != nil {
+		t.Fatalf("RenderMarkdownToHTML() error = %v", err)
+	}
+	assertContains(t, localHTML, `<link rel="stylesheet" href="../css">`)
+
+	queryHTML, err := RenderMarkdownToHTML("# Query", RenderOptions{CSS: "https://example.com/hi.css?raw=true"})
+	if err != nil {
+		t.Fatalf("RenderMarkdownToHTML() error = %v", err)
+	}
+	assertContains(t, queryHTML, `<link rel="stylesheet" href="https://example.com/hi.css?raw=true">`)
+}
+
 func TestRenderMarkdownToHTMLSupportsSlotsExtraCSSBodyClassAndFooter(t *testing.T) {
 	html, err := RenderMarkdownToHTML("# One\n\n## Two", RenderOptions{
 		AssetMode:  "local",
@@ -191,6 +212,14 @@ func TestRenderMarkdownToHTMLRejectsUnsupportedCSSAsset(t *testing.T) {
 		if err == nil || !strings.Contains(err.Error(), "unsupported CSS asset: "+css) {
 			t.Fatalf("expected unsupported CSS asset error for %q, got %v", css, err)
 		}
+	}
+	_, err := RenderMarkdownToHTML("# Hello", RenderOptions{AssetMode: "inline", CSS: "http://abc.com/a.css"})
+	if err == nil || !strings.Contains(err.Error(), "CSS hrefs require asset mode remote") {
+		t.Fatalf("expected CSS href asset mode error, got %v", err)
+	}
+	_, err = RenderMarkdownToHTML("# Hello", RenderOptions{AssetMode: "remote", CSS: "https://cdn.example.com/theme.js"})
+	if err == nil || !strings.Contains(err.Error(), "unsupported CSS URL") {
+		t.Fatalf("expected unsupported CSS URL error, got %v", err)
 	}
 }
 
