@@ -151,6 +151,7 @@ console.log(getEmbeddedAssetContent('highlight_js'));
 ```go
 asset, ok := gfmit.GetAsset("ravel_gfm_css")
 content, asset, err := gfmit.ReadAsset("ravel_gfm_css")
+embeddedContent, err := gfmit.ReadEmbeddedAssetContent("ravel_gfm_css")
 allAssets := gfmit.Assets()
 ```
 

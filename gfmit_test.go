@@ -100,9 +100,9 @@ func TestEmbeddedAssetContentIsGeneratedSeparatelyFromPackagedSource(t *testing.
 	if err != nil {
 		t.Fatalf("ReadAsset() error = %v", err)
 	}
-	embeddedContent, err := readEmbeddedAssetContent("github_gfm_css")
+	embeddedContent, err := ReadEmbeddedAssetContent("github_gfm_css")
 	if err != nil {
-		t.Fatalf("readEmbeddedAssetContent() error = %v", err)
+		t.Fatalf("ReadEmbeddedAssetContent() error = %v", err)
 	}
 	if len(embeddedContent) == 0 {
 		t.Fatal("embedded asset content is empty")
@@ -117,6 +117,12 @@ func TestEmbeddedAssetContentIsGeneratedSeparatelyFromPackagedSource(t *testing.
 	}
 	if !bytes.Contains([]byte(html), embeddedContent) {
 		t.Fatal("inline HTML does not contain generated embedded asset content")
+	}
+}
+
+func TestReadEmbeddedAssetContentRejectsUnknownAsset(t *testing.T) {
+	if _, err := ReadEmbeddedAssetContent("missing"); err == nil {
+		t.Fatal("ReadEmbeddedAssetContent() unexpectedly succeeded")
 	}
 }
 

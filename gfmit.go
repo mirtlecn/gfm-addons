@@ -78,3 +78,12 @@ func ReadAsset(key string) ([]byte, Asset, error) {
 	}
 	return content, asset, nil
 }
+
+// ReadEmbeddedAssetContent returns the minified embedded content for an asset key.
+//
+// Embedded content is generated at build time and is the content used for
+// RenderOptions{AssetMode: "inline"}. It may differ from ReadAsset, which
+// returns the source-format file shipped under assets/.
+func ReadEmbeddedAssetContent(key string) ([]byte, error) {
+	return readEmbeddedAssetContent(key)
+}
