@@ -9,7 +9,7 @@ const usage = `Usage: gfm-it [file] [options]
 Render GitHub Flavored Markdown into a complete HTML document.
 
 Arguments:
-  file                         Markdown file to render. Reads stdin when omitted.
+  file                         Markdown file to render. Reads piped stdin when omitted.
 
 Options:
   -h, --help                   Show this help message.
@@ -17,7 +17,8 @@ Options:
   --title <title>              Set the HTML document title.
   --canonical <url>            Set the canonical URL and og:url.
   --fallback-image <true|false> Use a stable grayscale Picsum image when no image is found. Default: false.
-  -c, --css <assetKey>         Select the main gfm-addons CSS asset. Default: ravel_gfm_css.
+  -c, --css <assetKey>         Select the main GFM CSS asset. Default: ravel_gfm_css.
+                               Supported: ravel_gfm_css, whitey_gfm_css, newsprint_gfm_css, github_gfm_css, folio_gfm_css.
   --asset-mode <remote|local|inline> Use remote CDN assets, local asset routes, or inline assets. Default: inline.
   --asset-base-url <url>       Base URL for local asset mode. Default: /asset/.
   --extra-css <css>            Append raw CSS inside the generated style block.
@@ -159,6 +160,11 @@ async function main() {
   }
 
   if (args.help) {
+    process.stdout.write(usage);
+    return;
+  }
+
+  if (!args.file && process.stdin.isTTY) {
     process.stdout.write(usage);
     return;
   }

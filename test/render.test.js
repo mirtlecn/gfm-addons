@@ -4,7 +4,7 @@ import { execFile, spawn } from 'node:child_process';
 import { mkdtemp, readFile, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { promisify } from 'node:util';
 import { getAsset, getGfmAssetUrl, renderMarkdownToHtml } from '../index.js';
 
@@ -299,12 +299,27 @@ test('CLI prints help with --help and -h', async () => {
   const shortHelp = await execFileAsync(process.execPath, [cliPath, '-h']);
 
   assert.match(help.stdout, /^Usage: gfm-it \[file\] \[options\]/);
+  assert.match(help.stdout, /Reads piped stdin when omitted/);
   assert.match(help.stdout, /--canonical <url>/);
   assert.match(help.stdout, /--fallback-image <true\|false>/);
   assert.match(help.stdout, /-c, --css <assetKey>/);
+  assert.match(help.stdout, /Supported: ravel_gfm_css, whitey_gfm_css, newsprint_gfm_css, github_gfm_css, folio_gfm_css/);
   assert.match(help.stdout, /--asset-mode <remote\|local\|inline>/);
   assert.match(help.stdout, /Default: inline/);
   assert.match(shortHelp.stdout, /^Usage: gfm-it \[file\] \[options\]/);
+});
+
+test('CLI prints help when file is omitted and stdin is a TTY', async () => {
+  const code = `
+Object.defineProperty(process.stdin, 'isTTY', { configurable: true, value: true });
+process.argv = [process.execPath, ${JSON.stringify(cliPath)}];
+await import(${JSON.stringify(pathToFileURL(cliPath).href)});
+`;
+  const result = await execFileAsync(process.execPath, ['--input-type=module', '-e', code]);
+
+  assert.match(result.stdout, /^Usage: gfm-it \[file\] \[options\]/);
+  assert.doesNotMatch(result.stdout, /<!doctype html>/);
+  assert.equal(result.stderr, '');
 });
 
 test('CLI reads stdin when file is omitted', async () => {
