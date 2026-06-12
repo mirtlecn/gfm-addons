@@ -22,6 +22,9 @@ gfm-it post.md --asset-mode local --asset-base-url /asset/ --output post.html
 # Use CDN assets.
 gfm-it post.md --asset-mode remote --output post.html
 
+# Select a bundled GFM theme. Short aliases such as `github` are accepted.
+gfm-it post.md -c github --output post.html
+
 # Read from stdin.
 printf '# Hello\n' | gfm-it --title Hello
 ```
@@ -202,7 +205,7 @@ renderMarkdownToHtml(markdown, {
   title: '',
   canonical: '',
   fallbackImage: false,
-  css: 'ravel_gfm_css',
+  css: 'ravel_gfm_css', // also accepts ravel, whitey, newsprint, github, folio
   assetMode: 'remote', // remote | local | inline
   assetBaseUrl: '/asset/',
   resolveAssetUrl: undefined,
@@ -218,7 +221,7 @@ gfmit.RenderOptions{
     Title:         "",
     Canonical:     "",
     FallbackImage: false,
-    CSS:           "ravel_gfm_css",
+    CSS:           "ravel_gfm_css", // also accepts ravel, whitey, newsprint, github, folio
     AssetMode:     "remote", // remote | local | inline
     AssetBaseURL:  "/asset/",
     ResolveAssetURL: nil,

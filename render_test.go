@@ -78,6 +78,14 @@ func TestRenderMarkdownToHTMLSupportsInlineAssets(t *testing.T) {
 	assertNotContains(t, html, `src="/asset/`)
 }
 
+func TestRenderMarkdownToHTMLNormalizesCSSAlias(t *testing.T) {
+	html, err := RenderMarkdownToHTML("# GitHub", RenderOptions{AssetMode: "inline", CSS: "github"})
+	if err != nil {
+		t.Fatalf("RenderMarkdownToHTML() error = %v", err)
+	}
+	assertContains(t, html, `<style data-gfm-asset="github_gfm_css">`)
+}
+
 func TestRenderMarkdownToHTMLSupportsSlotsExtraCSSBodyClassAndFooter(t *testing.T) {
 	html, err := RenderMarkdownToHTML("# One\n\n## Two", RenderOptions{
 		AssetMode:  "local",
@@ -174,6 +182,15 @@ func TestRenderMarkdownToHTMLRejectsUnsupportedAssetMode(t *testing.T) {
 	_, err := RenderMarkdownToHTML("# Hello", RenderOptions{AssetMode: "bad"})
 	if err == nil || !strings.Contains(err.Error(), "unsupported asset mode") {
 		t.Fatalf("expected unsupported asset mode error, got %v", err)
+	}
+}
+
+func TestRenderMarkdownToHTMLRejectsUnsupportedCSSAsset(t *testing.T) {
+	for _, css := range []string{"missing", "highlight_light_css"} {
+		_, err := RenderMarkdownToHTML("# Hello", RenderOptions{CSS: css})
+		if err == nil || !strings.Contains(err.Error(), "unsupported CSS asset: "+css) {
+			t.Fatalf("expected unsupported CSS asset error for %q, got %v", css, err)
+		}
 	}
 }
 

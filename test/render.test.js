@@ -6,7 +6,12 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { promisify } from 'node:util';
-import { getAsset, getGfmAssetUrl, renderMarkdownToHtml } from '../index.js';
+import {
+  getAsset,
+  getGfmAssetUrl,
+  normalizeCssAssetKey,
+  renderMarkdownToHtml,
+} from '../index.js';
 
 const execFileAsync = promisify(execFile);
 const cliPath = fileURLToPath(new URL('../cli.js', import.meta.url));
@@ -199,6 +204,32 @@ test('renderMarkdownToHtml inlines assets when requested', () => {
   assert.doesNotMatch(html, /src="\/asset\//);
 });
 
+test('renderMarkdownToHtml normalizes CSS aliases before rendering', () => {
+  assert.equal(normalizeCssAssetKey('github'), 'github_gfm_css');
+  assert.equal(normalizeCssAssetKey(' github_gfm_css '), 'github_gfm_css');
+
+  const html = renderMarkdownToHtml('# GitHub', { assetMode: 'inline', css: 'github' });
+
+  assert.match(html, /<style data-gfm-asset="github_gfm_css">/);
+});
+
+test('renderMarkdownToHtml rejects unsupported CSS assets before parsing markdown', () => {
+  const markdown = {
+    toString() {
+      throw new Error('markdown should not be parsed');
+    },
+  };
+
+  assert.throws(
+    () => renderMarkdownToHtml(markdown, { css: 'missing' }),
+    /Unsupported CSS asset: missing/,
+  );
+  assert.throws(
+    () => normalizeCssAssetKey('highlight_light_css'),
+    /Unsupported CSS asset: highlight_light_css/,
+  );
+});
+
 test('renderMarkdownToHtml supports the Folio GFM CSS asset', () => {
   const html = renderMarkdownToHtml('# Folio', { assetMode: 'inline', css: 'folio_gfm_css' });
 
@@ -309,7 +340,7 @@ test('CLI prints help with --help and -h', async () => {
   assert.match(help.stdout, /--canonical <url>/);
   assert.match(help.stdout, /--fallback-image <true\|false>/);
   assert.match(help.stdout, /-c, --css <assetKey>/);
-  assert.match(help.stdout, /Supported: ravel_gfm_css, whitey_gfm_css, newsprint_gfm_css, github_gfm_css, folio_gfm_css/);
+  assert.match(help.stdout, /Supported: ravel, whitey, newsprint, github, folio \(or ravel_gfm_css, whitey_gfm_css, newsprint_gfm_css, github_gfm_css, folio_gfm_css\)/);
   assert.match(help.stdout, /--asset-mode <remote\|local\|inline>/);
   assert.match(help.stdout, /Default: inline/);
   assert.match(shortHelp.stdout, /^Usage: gfm-it \[file\] \[options\]/);
@@ -341,11 +372,24 @@ test('CLI reads stdin when file is omitted', async () => {
 
 test('CLI accepts -c as a CSS asset alias', async () => {
   const result = await runCliWithInput(['-c', 'folio_gfm_css'], '# Folio');
+  const aliasResult = await runCliWithInput(['-c', 'github'], '# GitHub');
 
   assert.equal(result.code, 0);
   assert.match(result.stdout, /<style data-gfm-asset="folio_gfm_css">/);
   assert.match(result.stdout, /body:has\(\.markdown-body\)/);
   assert.equal(result.stderr, '');
+  assert.equal(aliasResult.code, 0);
+  assert.match(aliasResult.stdout, /<style data-gfm-asset="github_gfm_css">/);
+  assert.equal(aliasResult.stderr, '');
+});
+
+test('CLI rejects unsupported CSS assets during argument parsing', async () => {
+  const result = await runCliWithInput(['-c', 'highlight_light_css'], '# Highlight');
+
+  assert.equal(result.code, 1);
+  assert.equal(result.stdout, '');
+  assert.match(result.stderr, /Unsupported CSS asset: highlight_light_css/);
+  assert.match(result.stderr, /^Unsupported CSS asset: highlight_light_css/);
 });
 
 test('CLI renders a file to an output path', async () => {

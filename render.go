@@ -11,6 +11,7 @@ const (
 	defaultAssetMode    = "remote"
 	defaultAssetBaseURL = "/asset/"
 	darkBackgroundColor = "#0d1117"
+	gfmCSSAssetSuffix   = "_gfm_css"
 	assetModeLocal      = "local"
 	assetModeInline     = "inline"
 	assetModeRemote     = "remote"
@@ -49,7 +50,10 @@ type normalizedRenderOptions struct {
 
 // RenderMarkdownToHTML converts GitHub Flavored Markdown into a complete HTML document.
 func RenderMarkdownToHTML(markdown string, options RenderOptions) (string, error) {
-	normalized := normalizeRenderOptions(options)
+	normalized, err := normalizeRenderOptions(options)
+	if err != nil {
+		return "", err
+	}
 	metadata, err := extractMarkdownMetadata(markdown, options)
 	if err != nil {
 		return "", fmt.Errorf("markdown conversion failed: %w", err)
@@ -67,10 +71,10 @@ func RenderMarkdownToHTML(markdown string, options RenderOptions) (string, error
 	return renderHTMLDocument(metadata, htmlBody, headLinks, bodyScripts, footerHTML, normalized), nil
 }
 
-func normalizeRenderOptions(options RenderOptions) normalizedRenderOptions {
-	css := strings.TrimSpace(options.CSS)
-	if css == "" {
-		css = defaultCSSAssetKey
+func normalizeRenderOptions(options RenderOptions) (normalizedRenderOptions, error) {
+	css, err := normalizeCSSAssetKey(options.CSS)
+	if err != nil {
+		return normalizedRenderOptions{}, err
 	}
 	assetMode := strings.TrimSpace(options.AssetMode)
 	if assetMode == "" {
@@ -85,7 +89,47 @@ func normalizeRenderOptions(options RenderOptions) normalizedRenderOptions {
 		CSS:           css,
 		AssetMode:     assetMode,
 		AssetBaseURL:  assetBaseURL,
+	}, nil
+}
+
+func supportedCSSAssetKeys() []string {
+	keys := []string{}
+	for _, asset := range assets {
+		if strings.HasSuffix(asset.Key, gfmCSSAssetSuffix) && strings.HasPrefix(asset.ContentType, "text/css") {
+			keys = append(keys, asset.Key)
+		}
 	}
+	return keys
+}
+
+func supportedCSSAssetAliases() []string {
+	keys := supportedCSSAssetKeys()
+	aliases := make([]string, 0, len(keys))
+	for _, key := range keys {
+		aliases = append(aliases, strings.TrimSuffix(key, gfmCSSAssetSuffix))
+	}
+	return aliases
+}
+
+func formatSupportedCSSAssets() string {
+	return strings.Join(supportedCSSAssetAliases(), ", ") + " (or " + strings.Join(supportedCSSAssetKeys(), ", ") + ")"
+}
+
+func normalizeCSSAssetKey(css string) (string, error) {
+	requested := strings.TrimSpace(css)
+	if requested == "" {
+		requested = defaultCSSAssetKey
+	}
+	candidate := requested
+	if !strings.HasSuffix(candidate, gfmCSSAssetSuffix) {
+		candidate += gfmCSSAssetSuffix
+	}
+	for _, key := range supportedCSSAssetKeys() {
+		if candidate == key {
+			return candidate, nil
+		}
+	}
+	return "", fmt.Errorf("unsupported CSS asset: %s (supported: %s)", requested, formatSupportedCSSAssets())
 }
 
 func dynamicAssets(htmlBody string, options normalizedRenderOptions) ([]string, []string, error) {

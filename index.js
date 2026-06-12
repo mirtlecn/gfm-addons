@@ -4,7 +4,7 @@ import markedFootnote from 'marked-footnote';
 import { gfmHeadingId } from 'marked-gfm-heading-id';
 import { markedHighlight } from 'marked-highlight';
 import hljs from 'highlight.js';
-import { getAsset } from './assets.js';
+import { assets, getAsset } from './assets.js';
 import { getEmbeddedAssetContent } from './embedded.js';
 import { createHash } from 'node:crypto';
 import { VFile } from 'vfile';
@@ -22,6 +22,37 @@ const defaultCssAssetKey = 'ravel_gfm_css';
 const defaultAssetMode = 'remote';
 const defaultAssetBaseUrl = '/asset/';
 const darkBackgroundColor = '#0d1117';
+const gfmCssAssetSuffix = '_gfm_css';
+
+export const gfmCssAssetKeys = Object.freeze(
+  assets
+    .filter((asset) => asset.key.endsWith(gfmCssAssetSuffix) && asset.contentType.startsWith('text/css'))
+    .map((asset) => asset.key),
+);
+export const gfmCssAssetAliases = Object.freeze(
+  gfmCssAssetKeys.map((key) => key.slice(0, -gfmCssAssetSuffix.length)),
+);
+
+const gfmCssAssetKeySet = new Set(gfmCssAssetKeys);
+const gfmCssAssetAliasMap = new Map(
+  gfmCssAssetKeys.map((key) => [key.slice(0, -gfmCssAssetSuffix.length), key]),
+);
+
+export function formatSupportedCssAssets() {
+  return `${gfmCssAssetAliases.join(', ')} (or ${gfmCssAssetKeys.join(', ')})`;
+}
+
+export function normalizeCssAssetKey(css = defaultCssAssetKey) {
+  const requested = css === undefined || css === null ? '' : String(css).trim();
+  const candidate = requested || defaultCssAssetKey;
+  const normalized = gfmCssAssetAliasMap.get(candidate) || candidate;
+
+  if (!gfmCssAssetKeySet.has(normalized)) {
+    throw new Error(`Unsupported CSS asset: ${candidate}. Supported CSS assets: ${formatSupportedCssAssets()}`);
+  }
+
+  return normalized;
+}
 
 const metadataLexer = new Marked({ gfm: true, breaks: false });
 
@@ -416,13 +447,14 @@ export function renderMarkdownToHtml(markdown, options = {}) {
       bodyClass = '',
       footerHtml = '',
     } = options;
+    const normalizedCss = normalizeCssAssetKey(css);
     const assetOptions = normalizeAssetOptions(options);
     const metadata = extractMarkdownMetadata(markdown, { title, canonical, fallbackImage });
     const htmlBody = createMarkdownRenderer().parse(metadata.content);
     const normalizedFooterHtml = normalizeFooterHtml(footerHtml);
     const headingCount = countHeadings(htmlBody);
     const codeBlocksPresent = hasHighlightedCode(htmlBody);
-    const headLinks = [renderStylesheetAsset(css, assetOptions)];
+    const headLinks = [renderStylesheetAsset(normalizedCss, assetOptions)];
     const bodyScripts = [];
 
     if (headingCount >= 2) {
@@ -437,7 +469,7 @@ export function renderMarkdownToHtml(markdown, options = {}) {
 
     const context = {
       title: metadata.title,
-      css,
+      css: normalizedCss,
       htmlBody,
       headingCount,
       codeBlocksPresent,
