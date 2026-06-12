@@ -19,6 +19,7 @@ Options:
   --fallback-image <true|false> Use a stable grayscale Picsum image when no image is found. Default: false.
   -c, --css <assetKey|href>    Select the main GFM CSS asset. Default: ravel_gfm_css.
                                Supported: ${formatSupportedCssAssets()}.
+                               Markdown front matter gfm_css overrides this option when valid.
   --asset-mode <remote|local|inline> Use remote CDN assets, local asset routes, or inline assets. Default: inline.
   --asset-base-url <url>       Base URL for local asset mode. Default: /asset/.
   --extra-css <css>            Append raw CSS inside the generated style block.

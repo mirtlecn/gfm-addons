@@ -401,6 +401,7 @@ test('CLI prints help with --help and -h', async () => {
   assert.match(help.stdout, /--fallback-image <true\|false>/);
   assert.match(help.stdout, /-c, --css <assetKey\|href>/);
   assert.match(help.stdout, /Supported: ravel, whitey, newsprint, github, folio \(or ravel_gfm_css, whitey_gfm_css, newsprint_gfm_css, github_gfm_css, folio_gfm_css\); remote mode also accepts stylesheet hrefs/);
+  assert.match(help.stdout, /Markdown front matter gfm_css overrides this option when valid/);
   assert.match(help.stdout, /--asset-mode <remote\|local\|inline>/);
   assert.match(help.stdout, /Default: inline/);
   assert.match(shortHelp.stdout, /^Usage: gfm-it \[file\] \[options\]/);

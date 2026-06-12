@@ -28,6 +28,8 @@ gfm-it post.md --asset-mode remote -c https://example.com/hi.css?raw=true --outp
 # Select a bundled GFM theme. Short aliases such as `github` are accepted.
 gfm-it post.md -c github --output post.html
 
+# Markdown front matter `gfm_css` overrides -c/--css when it is valid.
+
 # Read from stdin.
 printf '# Hello\n' | gfm-it --title Hello
 ```
@@ -171,6 +173,7 @@ canonical: https://example.com/posts/yaml-title
 cover: https://example.com/cover.png
 date: 2026-06-10
 update: 2026-06-11T10:20:30Z
+gfm_css: folio
 ---
 
 # Visible Heading
@@ -202,6 +205,10 @@ renderMarkdownToHtml(markdown, {
 | `article:modified_time` | YAML `update` |
 | main CSS | valid YAML `gfm_css`, then option `css` |
 
+`gfm_css` accepts the same CSS choices as remote-mode `css`: bundled GFM theme keys such as `github_gfm_css`, short aliases such as `github`, remote stylesheet URLs ending in `.css` before any query string, and local stylesheet hrefs such as `/theme.css`, `./theme.css`, `../theme.css`, or `../css`.
+
+If `gfm_css` is invalid, the renderer ignores it and falls back to the API or CLI `css` option. Theme values still follow the selected `assetMode`: `remote` uses jsDelivr, `local` uses `assetBaseUrl`, and `inline` embeds the minified bundled asset. Href values are emitted as direct stylesheet links.
+
 ## Options
 
 ```js
@@ -209,7 +216,10 @@ renderMarkdownToHtml(markdown, {
   title: '',
   canonical: '',
   fallbackImage: false,
-  css: 'ravel_gfm_css', // YAML gfm_css overrides when valid; also accepts ravel, whitey, newsprint, github, folio; remote mode accepts stylesheet hrefs
+  // Valid YAML gfm_css overrides this option.
+  // Accepts ravel, whitey, newsprint, github, folio, or full *_gfm_css keys.
+  // Remote mode also accepts stylesheet hrefs.
+  css: 'ravel_gfm_css',
   assetMode: 'remote', // remote | local | inline
   assetBaseUrl: '/asset/',
   resolveAssetUrl: undefined,
@@ -225,7 +235,10 @@ gfmit.RenderOptions{
     Title:         "",
     Canonical:     "",
     FallbackImage: false,
-    CSS:           "ravel_gfm_css", // YAML gfm_css overrides when valid; also accepts ravel, whitey, newsprint, github, folio; remote mode accepts stylesheet hrefs
+    // Valid YAML gfm_css overrides this option.
+    // Accepts ravel, whitey, newsprint, github, folio, or full *_gfm_css keys.
+    // Remote mode also accepts stylesheet hrefs.
+    CSS:           "ravel_gfm_css",
     AssetMode:     "remote", // remote | local | inline
     AssetBaseURL:  "/asset/",
     ResolveAssetURL: nil,
