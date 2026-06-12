@@ -37,7 +37,7 @@
   --folio-code-operator: #b65252;
   box-sizing: border-box;
   max-width: 210mm;
-  min-height: 297mm;
+  width: 100%;
   margin: 0 auto;
   padding: 24mm 20mm 26mm;
   border: 1px solid var(--folio-border);
@@ -65,13 +65,31 @@ body:has(.markdown-body) {
   padding: 28px 24px 42px;
   background: linear-gradient(180deg, #ece9e4 0%, #e6e2dc 100%);
   color: #2f2a25;
+  display: flex;
+  flex-direction: column;
   font-family: Georgia, Cambria, "Times New Roman", "Songti SC", SimSun, "Noto Serif CJK SC",
     "Liberation Serif", "DejaVu Serif", serif;
 }
 
+body:has(.markdown-body) #toc-layout-shell {
+  display: flex;
+  flex: 1 0 auto;
+  flex-direction: column;
+  width: 100%;
+}
+
 body:has(.markdown-body) #toc-layout-content {
   max-width: 210mm;
+  width: 100%;
+  display: flex;
+  flex: 1 0 auto;
+  flex-direction: column;
   margin: 0 auto;
+}
+
+body:has(.markdown-body) > .markdown-body:not(.post-footer),
+body:has(.markdown-body) #toc-layout-content > .markdown-body:not(.post-footer) {
+  flex: 1 0 auto;
 }
 
 @media (prefers-color-scheme: dark) {

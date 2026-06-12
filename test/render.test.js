@@ -205,7 +205,13 @@ test('renderMarkdownToHtml supports the Folio GFM CSS asset', () => {
   assert.match(html, /<article class="markdown-body">/);
   assert.match(html, /<style data-gfm-asset="folio_gfm_css">/);
   assert.match(html, /body:has\(\.markdown-body\)/);
+  assert.match(html, /\.markdown-body\{[^}]*max-width:210mm[^}]*width:100%/s);
+  assert.doesNotMatch(html, /min-height:297mm/);
+  assert.match(html, /body:has\(\.markdown-body\)\{[^}]*display:flex[^}]*flex-direction:column/s);
   assert.match(html, /#toc-layout-content/);
+  assert.match(html, /#toc-layout-shell\{[^}]*display:flex[^}]*flex:1 0 auto[^}]*flex-direction:column[^}]*width:100%/s);
+  assert.match(html, /#toc-layout-content\{[^}]*max-width:210mm[^}]*width:100%[^}]*display:flex[^}]*flex:1 0 auto[^}]*flex-direction:column/s);
+  assert.match(html, /\.markdown-body:not\(\.post-footer\)\{flex:1 0 auto/s);
   assert.doesNotMatch(html, /fonts\.googleapis\.com/);
   assert.doesNotMatch(html, /@font-face/);
 });
