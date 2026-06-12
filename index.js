@@ -5,6 +5,7 @@ import { gfmHeadingId } from 'marked-gfm-heading-id';
 import { markedHighlight } from 'marked-highlight';
 import hljs from 'highlight.js';
 import { getAsset } from './assets.js';
+import { getEmbeddedAssetContent } from './embedded.js';
 import { createHash } from 'node:crypto';
 import { VFile } from 'vfile';
 import { matter } from 'vfile-matter';
@@ -265,6 +266,14 @@ function stylesheetLink(href, media = '') {
   return `<link rel="stylesheet" href="${escapeHtml(href)}"${mediaAttribute}>`;
 }
 
+function inlineStyleTag(asset, content, media = '') {
+  const mediaAttribute = media ? ` media="${escapeHtml(media)}"` : '';
+  const safeContent = String(content).replace(/<\/style/gi, '<\\/style');
+  return `<style data-gfm-asset="${escapeHtml(asset.key)}"${mediaAttribute}>
+${safeContent}
+</style>`;
+}
+
 function canonicalLink(href) {
   return `<link rel="canonical" href="${escapeHtml(href)}">`;
 }
@@ -325,6 +334,13 @@ function scriptTag(src) {
   return `<script src="${escapeHtml(src)}"></script>`;
 }
 
+function inlineScriptTag(asset, content) {
+  const safeContent = String(content).replace(/<\/script/gi, '<\\/script');
+  return `<script data-gfm-asset="${escapeHtml(asset.key)}">
+${safeContent}
+</script>`;
+}
+
 function bodyClassAttribute(bodyClass) {
   return bodyClass ? ` class="${escapeHtml(bodyClass)}"` : '';
 }
@@ -368,6 +384,26 @@ export function getGfmAssetUrl(key, options = {}) {
   throw new Error(`Unsupported assetMode: ${assetMode}`);
 }
 
+function renderStylesheetAsset(key, options, media = '') {
+  const asset = getAsset(key);
+
+  if (options.assetMode === 'inline' && typeof options.resolveAssetUrl !== 'function') {
+    return inlineStyleTag(asset, getEmbeddedAssetContent(key), media);
+  }
+
+  return stylesheetLink(getGfmAssetUrl(key, options), media);
+}
+
+function renderScriptAsset(key, options) {
+  const asset = getAsset(key);
+
+  if (options.assetMode === 'inline' && typeof options.resolveAssetUrl !== 'function') {
+    return inlineScriptTag(asset, getEmbeddedAssetContent(key));
+  }
+
+  return scriptTag(getGfmAssetUrl(key, options));
+}
+
 export function renderMarkdownToHtml(markdown, options = {}) {
   try {
     const {
@@ -386,17 +422,17 @@ export function renderMarkdownToHtml(markdown, options = {}) {
     const normalizedFooterHtml = normalizeFooterHtml(footerHtml);
     const headingCount = countHeadings(htmlBody);
     const codeBlocksPresent = hasHighlightedCode(htmlBody);
-    const headLinks = [stylesheetLink(getGfmAssetUrl(css, assetOptions))];
+    const headLinks = [renderStylesheetAsset(css, assetOptions)];
     const bodyScripts = [];
 
     if (headingCount >= 2) {
-      headLinks.push(stylesheetLink(getGfmAssetUrl('gfm_addons_css', assetOptions)));
-      bodyScripts.push(scriptTag(getGfmAssetUrl('gfm_addons_js', assetOptions)));
+      headLinks.push(renderStylesheetAsset('gfm_addons_css', assetOptions));
+      bodyScripts.push(renderScriptAsset('gfm_addons_js', assetOptions));
     }
 
     if (codeBlocksPresent) {
-      headLinks.push(stylesheetLink(getGfmAssetUrl('highlight_light_css', assetOptions), '(prefers-color-scheme: light)'));
-      headLinks.push(stylesheetLink(getGfmAssetUrl('highlight_dark_css', assetOptions), '(prefers-color-scheme: dark)'));
+      headLinks.push(renderStylesheetAsset('highlight_light_css', assetOptions, '(prefers-color-scheme: light)'));
+      headLinks.push(renderStylesheetAsset('highlight_dark_css', assetOptions, '(prefers-color-scheme: dark)'));
     }
 
     const context = {

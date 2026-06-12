@@ -17,6 +17,14 @@ const html = renderMarkdownToHtml('# Hello', {
 });
 ```
 
+Inline asset mode emits a self-contained HTML document with packaged CSS and JavaScript inserted directly into the output.
+
+```js
+const html = renderMarkdownToHtml('# Hello', {
+  assetMode: 'inline',
+});
+```
+
 Local asset mode keeps URLs compatible with servers that expose GFM assets at `/asset/<key>`.
 
 ```js
@@ -36,7 +44,9 @@ const html = renderMarkdownToHtml('# Hello', {
 gfm-it README.md --title README --output README.html
 gfm-it README.md --canonical https://example.com/readme
 gfm-it README.md --fallback-image true
+gfm-it README.md --asset-mode inline
 gfm-it README.md --asset-mode local --asset-base-url /asset/
+gfm-it README.md --asset-mode remote
 gfm-it README.md --footer-html '<a href="/">Home</a>'
 printf '# Hello\n' | gfm-it --title Hello
 gfm-it --help
@@ -71,7 +81,9 @@ renderMarkdownToHtml(markdown, {
 
 The generated head includes key OpenGraph and Twitter Card tags: `og:type`, `og:title`, `og:description`, `og:url`, `og:image`, `twitter:card`, `twitter:title`, `twitter:description`, and `twitter:image` when their source data is available.
 
-`assetMode: 'remote'` uses versioned jsDelivr URLs for files shipped by `gfm-it`. `assetMode: 'local'` emits local URLs such as `/asset/ravel_gfm_css`. `resolveAssetUrl(asset)` overrides both modes.
+`assetMode: 'remote'` uses versioned jsDelivr URLs for files shipped by `gfm-it`. `assetMode: 'local'` emits local URLs such as `/asset/ravel_gfm_css`. `resolveAssetUrl(asset)` overrides asset URL generation for all modes.
+
+`assetMode: 'inline'` embeds packaged CSS and JavaScript directly into the HTML with `<style data-gfm-asset="...">` and `<script data-gfm-asset="...">`. The CLI defaults to inline mode so generated HTML can be opened without a companion asset server.
 
 Slots are raw HTML strings or functions that return raw HTML. Supported slots are `headEnd`, `bodyStart`, `articleBefore`, `articleAfter`, and `bodyEnd`.
 
@@ -114,8 +126,7 @@ html, err := gfmit.RenderMarkdownToHTML("# Hello", gfmit.RenderOptions{
     Title:         "Hello",
     Canonical:     "https://example.com/hello",
     FallbackImage: true,
-    AssetMode:     "local",
-    AssetBaseURL:  "/asset/",
+    AssetMode:     "inline",
     FooterHTML:    "Powered by Post",
     Slots: gfmit.RenderSlots{
         BodyStart: "<!-- hint: append ?raw to view the raw file -->",

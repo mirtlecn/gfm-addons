@@ -18,7 +18,7 @@ Options:
   --canonical <url>            Set the canonical URL and og:url.
   --fallback-image <true|false> Use a stable grayscale Picsum image when no image is found. Default: false.
   --css <assetKey>             Select the main gfm-addons CSS asset. Default: ravel_gfm_css.
-  --asset-mode <remote|local>  Use remote CDN assets or local asset routes. Default: remote.
+  --asset-mode <remote|local|inline> Use remote CDN assets, local asset routes, or inline assets. Default: inline.
   --asset-base-url <url>       Base URL for local asset mode. Default: /asset/.
   --extra-css <css>            Append raw CSS inside the generated style block.
   --body-class <class>         Add a class attribute to the generated body.
@@ -68,7 +68,7 @@ function parseArgs(args) {
     canonical: '',
     fallbackImage: false,
     css: 'ravel_gfm_css',
-    assetMode: 'remote',
+    assetMode: 'inline',
     assetBaseUrl: '/asset/',
     extraCss: '',
     bodyClass: '',
@@ -142,8 +142,8 @@ function parseArgs(args) {
     parsed.file = arg;
   }
 
-  if (!['remote', 'local'].includes(parsed.assetMode)) {
-    throw new Error(`--asset-mode must be remote or local, got: ${parsed.assetMode}`);
+  if (!['remote', 'local', 'inline'].includes(parsed.assetMode)) {
+    throw new Error(`--asset-mode must be remote, local, or inline, got: ${parsed.assetMode}`);
   }
 
   return parsed;

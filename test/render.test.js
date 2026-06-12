@@ -186,6 +186,19 @@ test('renderMarkdownToHtml injects local TOC assets when enough headings exist',
   assert.match(html, /src="\/asset\/gfm_addons_js"/);
 });
 
+test('renderMarkdownToHtml inlines assets when requested', () => {
+  const html = renderMarkdownToHtml('# One\n\n## Two\n\n```js\nconsole.log("hi")\n```', { assetMode: 'inline' });
+
+  assert.match(html, /<style data-gfm-asset="ravel_gfm_css">/);
+  assert.match(html, /<style data-gfm-asset="gfm_addons_css">/);
+  assert.match(html, /<script data-gfm-asset="gfm_addons_js">/);
+  assert.match(html, /<style data-gfm-asset="highlight_light_css" media="\(prefers-color-scheme: light\)">/);
+  assert.match(html, /<style data-gfm-asset="highlight_dark_css" media="\(prefers-color-scheme: dark\)">/);
+  assert.doesNotMatch(html, /cdn\.jsdelivr\.net/);
+  assert.doesNotMatch(html, /href="\/asset\//);
+  assert.doesNotMatch(html, /src="\/asset\//);
+});
+
 test('renderMarkdownToHtml injects highlight assets only for code blocks', () => {
   const html = renderMarkdownToHtml('```js\nconsole.log("hi")\n```', { assetMode: 'local' });
 
@@ -250,7 +263,7 @@ test('getGfmAssetUrl supports custom resolver and local base URL', () => {
   );
 });
 
-test('getGfmAssetUrl rejects unsupported asset modes', () => {
+test('getGfmAssetUrl rejects asset modes that do not produce URLs', () => {
   assert.throws(
     () => getGfmAssetUrl('ravel_gfm_css', { assetMode: 'inline' }),
     /Unsupported assetMode: inline/,
@@ -264,6 +277,8 @@ test('CLI prints help with --help and -h', async () => {
   assert.match(help.stdout, /^Usage: gfm-it \[file\] \[options\]/);
   assert.match(help.stdout, /--canonical <url>/);
   assert.match(help.stdout, /--fallback-image <true\|false>/);
+  assert.match(help.stdout, /--asset-mode <remote\|local\|inline>/);
+  assert.match(help.stdout, /Default: inline/);
   assert.match(shortHelp.stdout, /^Usage: gfm-it \[file\] \[options\]/);
 });
 
@@ -273,6 +288,8 @@ test('CLI reads stdin when file is omitted', async () => {
   assert.equal(result.code, 0);
   assert.match(result.stdout, /<title>From stdin<\/title>/);
   assert.match(result.stdout, /From stdin/);
+  assert.match(result.stdout, /<style data-gfm-asset="ravel_gfm_css">/);
+  assert.doesNotMatch(result.stdout, /cdn\.jsdelivr\.net/);
   assert.equal(result.stderr, '');
 });
 

@@ -12,6 +12,7 @@ const (
 	defaultAssetBaseURL = "/asset/"
 	darkBackgroundColor = "#0d1117"
 	assetModeLocal      = "local"
+	assetModeInline     = "inline"
 	assetModeRemote     = "remote"
 )
 
@@ -88,45 +89,45 @@ func normalizeRenderOptions(options RenderOptions) normalizedRenderOptions {
 }
 
 func dynamicAssets(htmlBody string, options normalizedRenderOptions) ([]string, []string, error) {
-	baseCSS, err := gfmAssetURL(options.CSS, options)
+	baseCSS, err := renderStylesheetAsset(options.CSS, options, "")
 	if err != nil {
 		return nil, nil, err
 	}
-	headLinks := []string{stylesheetLink(baseCSS, "")}
+	headLinks := []string{baseCSS}
 	bodyScripts := []string{}
 
 	if countHeadings(htmlBody) >= 2 {
-		cssURL, err := gfmAssetURL("gfm_addons_css", options)
+		cssAsset, err := renderStylesheetAsset("gfm_addons_css", options, "")
 		if err != nil {
 			return nil, nil, err
 		}
-		jsURL, err := gfmAssetURL("gfm_addons_js", options)
+		jsAsset, err := renderScriptAsset("gfm_addons_js", options, false)
 		if err != nil {
 			return nil, nil, err
 		}
-		headLinks = append(headLinks, stylesheetLink(cssURL, ""))
-		bodyScripts = append(bodyScripts, scriptTag(jsURL))
+		headLinks = append(headLinks, cssAsset)
+		bodyScripts = append(bodyScripts, jsAsset)
 	}
 
 	if hasHighlightedCode(htmlBody) {
-		lightURL, err := gfmAssetURL("highlight_light_css", options)
+		lightAsset, err := renderStylesheetAsset("highlight_light_css", options, "(prefers-color-scheme: light)")
 		if err != nil {
 			return nil, nil, err
 		}
-		darkURL, err := gfmAssetURL("highlight_dark_css", options)
+		darkAsset, err := renderStylesheetAsset("highlight_dark_css", options, "(prefers-color-scheme: dark)")
 		if err != nil {
 			return nil, nil, err
 		}
-		highlightJSURL, err := gfmAssetURL("highlight_js", options)
+		highlightJSAsset, err := renderScriptAsset("highlight_js", options, true)
 		if err != nil {
 			return nil, nil, err
 		}
 		headLinks = append(headLinks,
-			stylesheetLink(lightURL, "(prefers-color-scheme: light)"),
-			stylesheetLink(darkURL, "(prefers-color-scheme: dark)"),
+			lightAsset,
+			darkAsset,
 		)
 		bodyScripts = append(bodyScripts,
-			deferredScriptTag(highlightJSURL),
+			highlightJSAsset,
 			"<script>window.addEventListener('DOMContentLoaded', function(){ if (window.hljs && hljs.highlightAll) hljs.highlightAll(); });</script>",
 		)
 	}
@@ -136,6 +137,47 @@ func dynamicAssets(htmlBody string, options normalizedRenderOptions) ([]string, 
 	}
 
 	return headLinks, bodyScripts, nil
+}
+
+func renderStylesheetAsset(key string, options normalizedRenderOptions, media string) (string, error) {
+	asset, ok := GetAsset(key)
+	if !ok {
+		return "", fmt.Errorf("unknown GFM asset: %s", key)
+	}
+	if options.AssetMode == assetModeInline && options.ResolveAssetURL == nil {
+		content, _, err := ReadAsset(key)
+		if err != nil {
+			return "", err
+		}
+		return inlineStyleTag(asset, string(content), media), nil
+	}
+	url, err := gfmAssetURL(key, options)
+	if err != nil {
+		return "", err
+	}
+	return stylesheetLink(url, media), nil
+}
+
+func renderScriptAsset(key string, options normalizedRenderOptions, deferScript bool) (string, error) {
+	asset, ok := GetAsset(key)
+	if !ok {
+		return "", fmt.Errorf("unknown GFM asset: %s", key)
+	}
+	if options.AssetMode == assetModeInline && options.ResolveAssetURL == nil {
+		content, _, err := ReadAsset(key)
+		if err != nil {
+			return "", err
+		}
+		return inlineScriptTag(asset, string(content)), nil
+	}
+	url, err := gfmAssetURL(key, options)
+	if err != nil {
+		return "", err
+	}
+	if deferScript {
+		return deferredScriptTag(url), nil
+	}
+	return scriptTag(url), nil
 }
 
 func gfmAssetURL(key string, options normalizedRenderOptions) (string, error) {
@@ -156,6 +198,8 @@ func gfmAssetURL(key string, options normalizedRenderOptions) (string, error) {
 	switch options.AssetMode {
 	case assetModeLocal:
 		return joinAssetBaseURL(options.AssetBaseURL, asset.Key), nil
+	case assetModeInline:
+		return "", fmt.Errorf("asset mode inline does not produce URLs for GFM asset: %s", key)
 	case assetModeRemote:
 		if asset.RemoteURL == "" {
 			return "", fmt.Errorf("remote URL is not configured for GFM asset: %s", key)
@@ -313,6 +357,14 @@ func stylesheetLink(href, media string) string {
 	return `<link rel="stylesheet" href="` + escapeHTML(href) + `"` + mediaAttribute + `>`
 }
 
+func inlineStyleTag(asset Asset, content, media string) string {
+	mediaAttribute := ""
+	if media != "" {
+		mediaAttribute = ` media="` + escapeHTML(media) + `"`
+	}
+	return `<style data-gfm-asset="` + escapeHTML(asset.Key) + `"` + mediaAttribute + `>` + "\n" + escapeRawTextEndTag(content, "style") + "\n</style>"
+}
+
 func canonicalLink(href string) string {
 	return `<link rel="canonical" href="` + escapeHTML(href) + `">`
 }
@@ -331,6 +383,16 @@ func scriptTag(src string) string {
 
 func deferredScriptTag(src string) string {
 	return `<script src="` + escapeHTML(src) + `" defer></script>`
+}
+
+func inlineScriptTag(asset Asset, content string) string {
+	return `<script data-gfm-asset="` + escapeHTML(asset.Key) + `">` + "\n" + escapeRawTextEndTag(content, "script") + "\n</script>"
+}
+
+func escapeRawTextEndTag(content, tag string) string {
+	content = strings.ReplaceAll(content, "</"+tag, "<\\/"+tag)
+	content = strings.ReplaceAll(content, "</"+strings.ToUpper(tag), "<\\/"+strings.ToUpper(tag))
+	return content
 }
 
 func bodyClassAttribute(bodyClass string) string {

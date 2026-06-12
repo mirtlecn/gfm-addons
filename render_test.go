@@ -62,6 +62,22 @@ func TestRenderMarkdownToHTMLSupportsLocalAssetsAndDynamicResources(t *testing.T
 	assertContains(t, html, "katex.min.css")
 }
 
+func TestRenderMarkdownToHTMLSupportsInlineAssets(t *testing.T) {
+	html, err := RenderMarkdownToHTML("# One\n\n## Two\n\n```go\nfmt.Println(\"hi\")\n```", RenderOptions{AssetMode: "inline"})
+	if err != nil {
+		t.Fatalf("RenderMarkdownToHTML() error = %v", err)
+	}
+	assertContains(t, html, `<style data-gfm-asset="ravel_gfm_css">`)
+	assertContains(t, html, `<style data-gfm-asset="gfm_addons_css">`)
+	assertContains(t, html, `<script data-gfm-asset="gfm_addons_js">`)
+	assertContains(t, html, `<style data-gfm-asset="highlight_light_css" media="(prefers-color-scheme: light)">`)
+	assertContains(t, html, `<style data-gfm-asset="highlight_dark_css" media="(prefers-color-scheme: dark)">`)
+	assertContains(t, html, `<script data-gfm-asset="highlight_js">`)
+	assertNotContains(t, html, "cdn.jsdelivr.net")
+	assertNotContains(t, html, `href="/asset/`)
+	assertNotContains(t, html, `src="/asset/`)
+}
+
 func TestRenderMarkdownToHTMLSupportsSlotsExtraCSSBodyClassAndFooter(t *testing.T) {
 	html, err := RenderMarkdownToHTML("# One\n\n## Two", RenderOptions{
 		AssetMode:  "local",
@@ -155,7 +171,7 @@ func TestRenderMarkdownToHTMLUsesCustomAssetResolver(t *testing.T) {
 }
 
 func TestRenderMarkdownToHTMLRejectsUnsupportedAssetMode(t *testing.T) {
-	_, err := RenderMarkdownToHTML("# Hello", RenderOptions{AssetMode: "inline"})
+	_, err := RenderMarkdownToHTML("# Hello", RenderOptions{AssetMode: "bad"})
 	if err == nil || !strings.Contains(err.Error(), "unsupported asset mode") {
 		t.Fatalf("expected unsupported asset mode error, got %v", err)
 	}
