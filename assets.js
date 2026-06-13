@@ -31,6 +31,12 @@ export const assets = [
     "remoteUrl": "https://cdn.jsdelivr.net/npm/gfm-it@0.3.0/assets/folio.gfm.min.css"
   },
   {
+    "key": "terminal.gfm.css",
+    "file": "assets/terminal.gfm.css",
+    "contentType": "text/css; charset=utf-8",
+    "remoteUrl": "https://cdn.jsdelivr.net/npm/gfm-it@0.3.0/assets/terminal.gfm.min.css"
+  },
+  {
     "key": "highlight-light.css",
     "file": "assets/highlight-light.css",
     "contentType": "text/css; charset=utf-8",

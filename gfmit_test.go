@@ -40,7 +40,7 @@ func minifiedAssetPath(file string) string {
 
 func TestAssets(t *testing.T) {
 	items := Assets()
-	if got, want := len(items), 10; got != want {
+	if got, want := len(items), 11; got != want {
 		t.Fatalf("len(Assets()) = %d, want %d", got, want)
 	}
 
@@ -79,6 +79,17 @@ func TestAssets(t *testing.T) {
 	}
 	if folio.RemoteURL != expectedRemoteURL(t, "assets/folio.gfm.css") {
 		t.Fatalf("folio.gfm.css remote URL = %q", folio.RemoteURL)
+	}
+
+	terminal, ok := GetAsset("terminal.gfm.css")
+	if !ok {
+		t.Fatal("terminal.gfm.css is missing")
+	}
+	if terminal.File != "assets/terminal.gfm.css" {
+		t.Fatalf("terminal.gfm.css file = %q", terminal.File)
+	}
+	if terminal.RemoteURL != expectedRemoteURL(t, "assets/terminal.gfm.css") {
+		t.Fatalf("terminal.gfm.css remote URL = %q", terminal.RemoteURL)
 	}
 }
 

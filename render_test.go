@@ -84,6 +84,14 @@ func TestRenderMarkdownToHTMLNormalizesCSSAlias(t *testing.T) {
 		t.Fatalf("RenderMarkdownToHTML() error = %v", err)
 	}
 	assertContains(t, html, `<style data-gfm-asset="github.gfm.css">`)
+
+	terminalHTML, err := RenderMarkdownToHTML("# Terminal", RenderOptions{AssetMode: "inline", CSS: "terminal"})
+	if err != nil {
+		t.Fatalf("RenderMarkdownToHTML() error = %v", err)
+	}
+	assertContains(t, terminalHTML, `<style data-gfm-asset="terminal.gfm.css">`)
+	assertContains(t, terminalHTML, "--terminal-accent")
+	assertNotContains(t, terminalHTML, "Fira Code")
 }
 
 func TestRenderMarkdownToHTMLAcceptsCSSHref(t *testing.T) {

@@ -207,14 +207,19 @@ test('renderMarkdownToHtml inlines assets when requested', () => {
 
 test('renderMarkdownToHtml normalizes CSS aliases before rendering', () => {
   assert.equal(normalizeCssAssetKey('github'), 'github.gfm.css');
+  assert.equal(normalizeCssAssetKey('terminal'), 'terminal.gfm.css');
   assert.throws(
     () => normalizeCssAssetKey(' github.gfm.css '),
     /Unsupported CSS asset: github\.gfm\.css/,
   );
 
   const html = renderMarkdownToHtml('# GitHub', { assetMode: 'inline', css: 'github' });
+  const terminalHtml = renderMarkdownToHtml('# Terminal', { assetMode: 'inline', css: 'terminal' });
 
   assert.match(html, /<style data-gfm-asset="github.gfm.css">/);
+  assert.match(terminalHtml, /<style data-gfm-asset="terminal.gfm.css">/);
+  assert.match(terminalHtml, /--terminal-accent/);
+  assert.doesNotMatch(terminalHtml, /Fira Code|staticdelivr|fonts\.googleapis/i);
 });
 
 test('renderMarkdownToHtml accepts CSS hrefs in remote asset mode', () => {
@@ -417,7 +422,7 @@ test('CLI prints help with --help and -h', async () => {
   assert.match(help.stdout, /--canonical <url>/);
   assert.match(help.stdout, /--fallback-image <true\|false>/);
   assert.match(help.stdout, /-c, --css <theme\|href>/);
-  assert.match(help.stdout, /Supported: ravel, whitey, newsprint, github, folio; remote mode also accepts stylesheet hrefs/);
+  assert.match(help.stdout, /Supported: ravel, whitey, newsprint, github, folio, terminal; remote mode also accepts stylesheet hrefs/);
   assert.match(help.stdout, /Markdown front matter gfm_css overrides this option when valid/);
   assert.match(help.stdout, /--asset-mode <remote\|local\|inline>/);
   assert.match(help.stdout, /Default: inline/);
@@ -451,6 +456,7 @@ test('CLI reads stdin when file is omitted', async () => {
 test('CLI accepts -c as a CSS asset alias', async () => {
   const result = await runCliWithInput(['-c', 'folio'], '# Folio');
   const aliasResult = await runCliWithInput(['-c', 'github'], '# GitHub');
+  const terminalResult = await runCliWithInput(['-c', 'terminal'], '# Terminal');
 
   assert.equal(result.code, 0);
   assert.match(result.stdout, /<style data-gfm-asset="folio.gfm.css">/);
@@ -459,6 +465,10 @@ test('CLI accepts -c as a CSS asset alias', async () => {
   assert.equal(aliasResult.code, 0);
   assert.match(aliasResult.stdout, /<style data-gfm-asset="github.gfm.css">/);
   assert.equal(aliasResult.stderr, '');
+  assert.equal(terminalResult.code, 0);
+  assert.match(terminalResult.stdout, /<style data-gfm-asset="terminal.gfm.css">/);
+  assert.match(terminalResult.stdout, /--terminal-accent/);
+  assert.equal(terminalResult.stderr, '');
 });
 
 test('CLI accepts CSS hrefs only in remote asset mode', async () => {

@@ -205,7 +205,7 @@ renderMarkdownToHtml(markdown, {
 | `article:modified_time` | YAML `update` |
 | main CSS | valid YAML `gfm_css`, then option `css` |
 
-`gfm_css` accepts the same CSS choices as remote-mode `css`: bundled GFM theme short names such as `github` and `folio`, remote stylesheet URLs ending in `.css` before any query string, and local stylesheet hrefs such as `/theme.css`, `./theme.css`, `../theme.css`, `github.gfm.css`, or `../css`.
+`gfm_css` accepts the same CSS choices as remote-mode `css`: bundled GFM theme short names such as `github`, `folio`, and `terminal`, remote stylesheet URLs ending in `.css` before any query string, and local stylesheet hrefs such as `/theme.css`, `./theme.css`, `../theme.css`, `github.gfm.css`, or `../css`.
 
 If `gfm_css` is invalid, the renderer ignores it and falls back to the API or CLI `css` option. Short-name theme values still follow the selected `assetMode`: `remote` uses jsDelivr, `local` uses `assetBaseUrl`, and `inline` embeds the minified bundled asset. Href values are emitted as direct stylesheet links.
 
@@ -217,7 +217,7 @@ renderMarkdownToHtml(markdown, {
   canonical: '',
   fallbackImage: false,
   // Valid YAML gfm_css overrides this option.
-  // Built-in themes accept short names only: ravel, whitey, newsprint, github, folio.
+  // Built-in themes accept short names only: ravel, whitey, newsprint, github, folio, terminal.
   // Values ending in .css are treated as stylesheet hrefs, not built-in themes.
   // Remote mode also accepts stylesheet hrefs.
   css: 'ravel',
@@ -237,7 +237,7 @@ gfmit.RenderOptions{
     Canonical:     "",
     FallbackImage: false,
     // Valid YAML gfm_css overrides this option.
-    // Built-in themes accept short names only: ravel, whitey, newsprint, github, folio.
+    // Built-in themes accept short names only: ravel, whitey, newsprint, github, folio, terminal.
     // Values ending in .css are treated as stylesheet hrefs, not built-in themes.
     // Remote mode also accepts stylesheet hrefs.
     CSS:           "ravel",

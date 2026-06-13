@@ -20,6 +20,10 @@ export const assetDefinitions = [
     contentType: 'text/css; charset=utf-8',
   },
   {
+    file: 'assets/terminal.gfm.css',
+    contentType: 'text/css; charset=utf-8',
+  },
+  {
     file: 'assets/highlight-light.css',
     contentType: 'text/css; charset=utf-8',
   },
