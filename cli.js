@@ -17,7 +17,7 @@ Options:
   --title <title>              Set the HTML document title.
   --canonical <url>            Set the canonical URL and og:url.
   --fallback-image <true|false> Use a stable grayscale Picsum image when no image is found. Default: false.
-  -c, --css <assetKey|href>    Select the main GFM CSS asset. Default: ravel_gfm_css.
+  -c, --css <theme|href>       Select the main GFM CSS theme. Default: ravel.
                                Supported: ${formatSupportedCssAssets()}.
                                Markdown front matter gfm_css overrides this option when valid.
   --asset-mode <remote|local|inline> Use remote CDN assets, local asset routes, or inline assets. Default: inline.
@@ -69,7 +69,7 @@ function parseArgs(args) {
     title: '',
     canonical: '',
     fallbackImage: false,
-    css: 'ravel_gfm_css',
+    css: 'ravel',
     assetMode: 'inline',
     assetBaseUrl: '/asset/',
     extraCss: '',
@@ -147,8 +147,7 @@ function parseArgs(args) {
   if (!['remote', 'local', 'inline'].includes(parsed.assetMode)) {
     throw new Error(`--asset-mode must be remote, local, or inline, got: ${parsed.assetMode}`);
   }
-  const cssReference = normalizeCssReference(parsed.css, { assetMode: parsed.assetMode });
-  parsed.css = cssReference.type === 'asset' ? cssReference.key : cssReference.href;
+  normalizeCssReference(parsed.css, { assetMode: parsed.assetMode });
 
   return parsed;
 }

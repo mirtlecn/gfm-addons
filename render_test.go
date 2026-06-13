@@ -17,7 +17,7 @@ func TestRenderMarkdownToHTMLReturnsCompleteDocumentWithRemoteAssets(t *testing.
 	assertContains(t, html, "<html>")
 	assertContains(t, html, "<title>Hello &lt;World&gt;</title>")
 	assertContains(t, html, `<meta property="og:title" content="Hello &lt;World&gt;">`)
-	assertContains(t, html, MustAsset("ravel_gfm_css").RemoteURL)
+	assertContains(t, html, MustAsset("ravel.gfm.css").RemoteURL)
 	assertNotContains(t, html, "gfm-addons.js")
 	assertNotContains(t, html, "highlight-light.css")
 }
@@ -53,12 +53,12 @@ func TestRenderMarkdownToHTMLSupportsLocalAssetsAndDynamicResources(t *testing.T
 	if err != nil {
 		t.Fatalf("RenderMarkdownToHTML() error = %v", err)
 	}
-	assertContains(t, html, `href="/asset/ravel_gfm_css"`)
-	assertContains(t, html, `href="/asset/gfm_addons_css"`)
-	assertContains(t, html, `src="/asset/gfm_addons_js"`)
-	assertContains(t, html, `href="/asset/highlight_light_css" media="(prefers-color-scheme: light)"`)
-	assertContains(t, html, `href="/asset/highlight_dark_css" media="(prefers-color-scheme: dark)"`)
-	assertContains(t, html, `src="/asset/highlight_js" defer`)
+	assertContains(t, html, `href="/asset/ravel.gfm.css"`)
+	assertContains(t, html, `href="/asset/gfm-addons.css"`)
+	assertContains(t, html, `src="/asset/gfm-addons.js"`)
+	assertContains(t, html, `href="/asset/highlight-light.css" media="(prefers-color-scheme: light)"`)
+	assertContains(t, html, `href="/asset/highlight-dark.css" media="(prefers-color-scheme: dark)"`)
+	assertContains(t, html, `src="/asset/highlight-core.js" defer`)
 	assertContains(t, html, "katex.min.css")
 }
 
@@ -67,12 +67,12 @@ func TestRenderMarkdownToHTMLSupportsInlineAssets(t *testing.T) {
 	if err != nil {
 		t.Fatalf("RenderMarkdownToHTML() error = %v", err)
 	}
-	assertContains(t, html, `<style data-gfm-asset="ravel_gfm_css">`)
-	assertContains(t, html, `<style data-gfm-asset="gfm_addons_css">`)
-	assertContains(t, html, `<script data-gfm-asset="gfm_addons_js">`)
-	assertContains(t, html, `<style data-gfm-asset="highlight_light_css" media="(prefers-color-scheme: light)">`)
-	assertContains(t, html, `<style data-gfm-asset="highlight_dark_css" media="(prefers-color-scheme: dark)">`)
-	assertContains(t, html, `<script data-gfm-asset="highlight_js">`)
+	assertContains(t, html, `<style data-gfm-asset="ravel.gfm.css">`)
+	assertContains(t, html, `<style data-gfm-asset="gfm-addons.css">`)
+	assertContains(t, html, `<script data-gfm-asset="gfm-addons.js">`)
+	assertContains(t, html, `<style data-gfm-asset="highlight-light.css" media="(prefers-color-scheme: light)">`)
+	assertContains(t, html, `<style data-gfm-asset="highlight-dark.css" media="(prefers-color-scheme: dark)">`)
+	assertContains(t, html, `<script data-gfm-asset="highlight-core.js">`)
 	assertNotContains(t, html, "cdn.jsdelivr.net")
 	assertNotContains(t, html, `href="/asset/`)
 	assertNotContains(t, html, `src="/asset/`)
@@ -83,7 +83,7 @@ func TestRenderMarkdownToHTMLNormalizesCSSAlias(t *testing.T) {
 	if err != nil {
 		t.Fatalf("RenderMarkdownToHTML() error = %v", err)
 	}
-	assertContains(t, html, `<style data-gfm-asset="github_gfm_css">`)
+	assertContains(t, html, `<style data-gfm-asset="github.gfm.css">`)
 }
 
 func TestRenderMarkdownToHTMLAcceptsCSSHref(t *testing.T) {
@@ -92,7 +92,7 @@ func TestRenderMarkdownToHTMLAcceptsCSSHref(t *testing.T) {
 		t.Fatalf("RenderMarkdownToHTML() error = %v", err)
 	}
 	assertContains(t, html, `<link rel="stylesheet" href="http://abc.com/a.css">`)
-	assertNotContains(t, html, "ravel-gfm.min.css")
+	assertNotContains(t, html, "ravel.gfm.min.css")
 
 	localHTML, err := RenderMarkdownToHTML("# Local", RenderOptions{CSS: "../css"})
 	if err != nil {
@@ -105,6 +105,13 @@ func TestRenderMarkdownToHTMLAcceptsCSSHref(t *testing.T) {
 		t.Fatalf("RenderMarkdownToHTML() error = %v", err)
 	}
 	assertContains(t, queryHTML, `<link rel="stylesheet" href="https://example.com/hi.css?raw=true">`)
+
+	keyLikeHTML, err := RenderMarkdownToHTML("# Key-like href", RenderOptions{CSS: "github.gfm.css"})
+	if err != nil {
+		t.Fatalf("RenderMarkdownToHTML() error = %v", err)
+	}
+	assertContains(t, keyLikeHTML, `<link rel="stylesheet" href="github.gfm.css">`)
+	assertNotContains(t, keyLikeHTML, `data-gfm-asset="github.gfm.css"`)
 }
 
 func TestRenderMarkdownToHTMLUsesYAMLCSSOverride(t *testing.T) {
@@ -112,21 +119,21 @@ func TestRenderMarkdownToHTMLUsesYAMLCSSOverride(t *testing.T) {
 	if err != nil {
 		t.Fatalf("RenderMarkdownToHTML() error = %v", err)
 	}
-	assertContains(t, aliasHTML, `<style data-gfm-asset="github_gfm_css">`)
-	assertNotContains(t, aliasHTML, `data-gfm-asset="folio_gfm_css"`)
+	assertContains(t, aliasHTML, `<style data-gfm-asset="github.gfm.css">`)
+	assertNotContains(t, aliasHTML, `data-gfm-asset="folio.gfm.css"`)
 
 	hrefHTML, err := RenderMarkdownToHTML("---\ngfm_css: ../css\n---\n# YAML CSS", RenderOptions{AssetMode: "inline", CSS: "github"})
 	if err != nil {
 		t.Fatalf("RenderMarkdownToHTML() error = %v", err)
 	}
 	assertContains(t, hrefHTML, `<link rel="stylesheet" href="../css">`)
-	assertNotContains(t, hrefHTML, `data-gfm-asset="github_gfm_css"`)
+	assertNotContains(t, hrefHTML, `data-gfm-asset="github.gfm.css"`)
 
 	fallbackHTML, err := RenderMarkdownToHTML("---\ngfm_css: https://example.com/theme.js\n---\n# YAML CSS", RenderOptions{AssetMode: "inline", CSS: "github"})
 	if err != nil {
 		t.Fatalf("RenderMarkdownToHTML() error = %v", err)
 	}
-	assertContains(t, fallbackHTML, `<style data-gfm-asset="github_gfm_css">`)
+	assertContains(t, fallbackHTML, `<style data-gfm-asset="github.gfm.css">`)
 	assertNotContains(t, fallbackHTML, "theme.js")
 }
 
@@ -135,15 +142,15 @@ func TestRenderMarkdownToHTMLKeepsYAMLThemeAssetsModeAware(t *testing.T) {
 	if err != nil {
 		t.Fatalf("RenderMarkdownToHTML() error = %v", err)
 	}
-	assertContains(t, localThemeHTML, `<link rel="stylesheet" href="/asset/github_gfm_css">`)
-	assertNotContains(t, localThemeHTML, "folio_gfm_css")
+	assertContains(t, localThemeHTML, `<link rel="stylesheet" href="/asset/github.gfm.css">`)
+	assertNotContains(t, localThemeHTML, "folio.gfm.css")
 
 	localHrefHTML, err := RenderMarkdownToHTML("---\ngfm_css: ../css\n---\n# YAML CSS", RenderOptions{AssetMode: "local", CSS: "github"})
 	if err != nil {
 		t.Fatalf("RenderMarkdownToHTML() error = %v", err)
 	}
 	assertContains(t, localHrefHTML, `<link rel="stylesheet" href="../css">`)
-	assertNotContains(t, localHrefHTML, `/asset/github_gfm_css`)
+	assertNotContains(t, localHrefHTML, `/asset/github.gfm.css`)
 }
 
 func TestRenderMarkdownToHTMLSupportsSlotsExtraCSSBodyClassAndFooter(t *testing.T) {
@@ -175,8 +182,10 @@ footer-e8c3a91f <a href="https://example.test/link-42">link-17b92</a>
 	assertContains(t, html, "min-height: 100vh;")
 	assertContains(t, html, "display: flex;")
 	assertContains(t, html, "flex-direction: column;")
+	assertContains(t, html, "<style>\nbody { box-sizing: border-box; min-width: 200px; max-width: 838px; min-height: 100vh; margin: 0 auto; padding: 45px; display: flex; flex-direction: column; }")
+	assertNotContains(t, html, "body {\n")
 	articleEndIndex := strings.Index(html, "</article>")
-	tocScriptIndex := strings.Index(html, "/asset/gfm_addons_js")
+	tocScriptIndex := strings.Index(html, "/asset/gfm-addons.js")
 	footerIndex := strings.Index(html, `<footer class="markdown-body post-footer">`)
 	if articleEndIndex == -1 || tocScriptIndex == -1 || footerIndex == -1 || !(articleEndIndex < tocScriptIndex && tocScriptIndex < footerIndex) {
 		t.Fatalf("expected footer after article and dynamic scripts, got %q", html)
@@ -228,7 +237,7 @@ func TestRenderMarkdownToHTMLUsesCustomAssetResolver(t *testing.T) {
 	if err != nil {
 		t.Fatalf("RenderMarkdownToHTML() error = %v", err)
 	}
-	assertContains(t, html, `href="/custom/ravel_gfm_css"`)
+	assertContains(t, html, `href="/custom/ravel.gfm.css"`)
 
 	_, err = RenderMarkdownToHTML("# Hello", RenderOptions{
 		ResolveAssetURL: func(asset Asset) (string, error) { return "", nil },
@@ -246,7 +255,7 @@ func TestRenderMarkdownToHTMLRejectsUnsupportedAssetMode(t *testing.T) {
 }
 
 func TestRenderMarkdownToHTMLRejectsUnsupportedCSSAsset(t *testing.T) {
-	for _, css := range []string{"missing", "highlight_light_css"} {
+	for _, css := range []string{"missing", "github_gfm_css"} {
 		_, err := RenderMarkdownToHTML("# Hello", RenderOptions{CSS: css})
 		if err == nil || !strings.Contains(err.Error(), "unsupported CSS asset: "+css) {
 			t.Fatalf("expected unsupported CSS asset error for %q, got %v", css, err)

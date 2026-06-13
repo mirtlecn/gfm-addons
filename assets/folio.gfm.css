@@ -663,9 +663,9 @@ body:has(.markdown-body) #toc-layout-content > .markdown-body:not(.post-footer) 
   visibility: visible;
 }
 
-@media screen and (max-width: 980px) {
+@media screen and (max-width: 860px) {
   body:has(.markdown-body) {
-    padding: 0;
+    padding: 0 0 42px;
     background: #fffdfa;
   }
 
@@ -690,7 +690,7 @@ body:has(.markdown-body) #toc-layout-content > .markdown-body:not(.post-footer) 
   }
 }
 
-@media screen and (max-width: 980px) and (prefers-color-scheme: dark) {
+@media screen and (max-width: 860px) and (prefers-color-scheme: dark) {
   body:has(.markdown-body) {
     background: #1a1a1a;
   }

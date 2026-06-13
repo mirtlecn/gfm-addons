@@ -1,5 +1,5 @@
 import { readFile, writeFile } from 'node:fs/promises';
-import { dirname, join } from 'node:path';
+import { basename, dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { assetDefinitions } from './assets.mjs';
 import { createMinifiedFilePath, minifyAssetContent } from './minify-assets.mjs';
@@ -19,8 +19,13 @@ function createRemoteUrl(packageName, version, filePath) {
   return `https://cdn.jsdelivr.net/npm/${packageName}@${version}/${createMinifiedFilePath(filePath)}`;
 }
 
+function createAssetKey(filePath) {
+  return basename(filePath);
+}
+
 function createAssets(packageJson) {
   return assetDefinitions.map((asset) => ({
+    key: createAssetKey(asset.file),
     ...asset,
     remoteUrl: createRemoteUrl(packageJson.name, packageJson.version, asset.file),
   }));

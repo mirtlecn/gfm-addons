@@ -107,7 +107,7 @@ func render(markdown string) (string, error) {
 
 ```go
 html, err := gfmit.RenderMarkdownToHTML(markdown, gfmit.RenderOptions{
-    // Match a server route such as /asset/ravel_gfm_css.
+    // Match a server route such as /asset/ravel.gfm.css.
     AssetMode:    "local",
     AssetBaseURL: "/asset/",
 
@@ -139,7 +139,7 @@ html, err := gfmit.RenderMarkdownToHTML(markdown, gfmit.RenderOptions{
 
 ## Assets
 
-Files under `assets/` are shipped in their source format. Remote mode points at jsDelivr `.min.css` and `.min.js` URLs, and embedded/inline assets are minified during the build without rewriting the source files.
+Files under `assets/` are shipped in their source format. Remote mode points at jsDelivr `.min.css` and `.min.js` URLs, and embedded/inline assets are minified during the build without rewriting the source files. Asset keys are generated from the source file name, for example `assets/github.gfm.css` becomes `github.gfm.css`.
 
 ```js
 import {
@@ -151,15 +151,15 @@ import {
 } from 'gfm-it';
 import { getEmbeddedAssetContent } from 'gfm-it/embedded';
 
-console.log(getAsset('ravel_gfm_css'));
-console.log(getAssetRemoteUrl('gfm_addons_js'));
-console.log(getEmbeddedAssetContent('highlight_js'));
+console.log(getAsset('ravel.gfm.css'));
+console.log(getAssetRemoteUrl('gfm-addons.js'));
+console.log(getEmbeddedAssetContent('highlight-core.js'));
 ```
 
 ```go
-asset, ok := gfmit.GetAsset("ravel_gfm_css")
-content, asset, err := gfmit.ReadAsset("ravel_gfm_css")
-embeddedContent, err := gfmit.ReadEmbeddedAssetContent("ravel_gfm_css")
+asset, ok := gfmit.GetAsset("ravel.gfm.css")
+content, asset, err := gfmit.ReadAsset("ravel.gfm.css")
+embeddedContent, err := gfmit.ReadEmbeddedAssetContent("ravel.gfm.css")
 allAssets := gfmit.Assets()
 ```
 
@@ -205,9 +205,9 @@ renderMarkdownToHtml(markdown, {
 | `article:modified_time` | YAML `update` |
 | main CSS | valid YAML `gfm_css`, then option `css` |
 
-`gfm_css` accepts the same CSS choices as remote-mode `css`: bundled GFM theme keys such as `github_gfm_css`, short aliases such as `github`, remote stylesheet URLs ending in `.css` before any query string, and local stylesheet hrefs such as `/theme.css`, `./theme.css`, `../theme.css`, or `../css`.
+`gfm_css` accepts the same CSS choices as remote-mode `css`: bundled GFM theme short names such as `github` and `folio`, remote stylesheet URLs ending in `.css` before any query string, and local stylesheet hrefs such as `/theme.css`, `./theme.css`, `../theme.css`, `github.gfm.css`, or `../css`.
 
-If `gfm_css` is invalid, the renderer ignores it and falls back to the API or CLI `css` option. Theme values still follow the selected `assetMode`: `remote` uses jsDelivr, `local` uses `assetBaseUrl`, and `inline` embeds the minified bundled asset. Href values are emitted as direct stylesheet links.
+If `gfm_css` is invalid, the renderer ignores it and falls back to the API or CLI `css` option. Short-name theme values still follow the selected `assetMode`: `remote` uses jsDelivr, `local` uses `assetBaseUrl`, and `inline` embeds the minified bundled asset. Href values are emitted as direct stylesheet links.
 
 ## Options
 
@@ -217,9 +217,10 @@ renderMarkdownToHtml(markdown, {
   canonical: '',
   fallbackImage: false,
   // Valid YAML gfm_css overrides this option.
-  // Accepts ravel, whitey, newsprint, github, folio, or full *_gfm_css keys.
+  // Built-in themes accept short names only: ravel, whitey, newsprint, github, folio.
+  // Values ending in .css are treated as stylesheet hrefs, not built-in themes.
   // Remote mode also accepts stylesheet hrefs.
-  css: 'ravel_gfm_css',
+  css: 'ravel',
   assetMode: 'remote', // remote | local | inline
   assetBaseUrl: '/asset/',
   resolveAssetUrl: undefined,
@@ -236,9 +237,10 @@ gfmit.RenderOptions{
     Canonical:     "",
     FallbackImage: false,
     // Valid YAML gfm_css overrides this option.
-    // Accepts ravel, whitey, newsprint, github, folio, or full *_gfm_css keys.
+    // Built-in themes accept short names only: ravel, whitey, newsprint, github, folio.
+    // Values ending in .css are treated as stylesheet hrefs, not built-in themes.
     // Remote mode also accepts stylesheet hrefs.
-    CSS:           "ravel_gfm_css",
+    CSS:           "ravel",
     AssetMode:     "remote", // remote | local | inline
     AssetBaseURL:  "/asset/",
     ResolveAssetURL: nil,
@@ -254,8 +256,8 @@ Dynamic assets:
 | Trigger | Assets |
 | --- | --- |
 | always | selected base CSS |
-| at least two headings | `gfm_addons_css`, `gfm_addons_js` |
-| code block | highlight light/dark CSS; Go also injects `highlight_js` |
+| at least two headings | `gfm-addons.css`, `gfm-addons.js` |
+| code block | highlight light/dark CSS; Go also injects `highlight-core.js` |
 | display math | KaTeX CSS |
 
 Go uses `goldmark`, GFM, footnotes, GitHub alert callouts, KaTeX, and unsafe raw HTML rendering. The wrapper options match the JavaScript API; parser output is not guaranteed to be byte-for-byte identical.

@@ -44,63 +44,63 @@ func TestAssets(t *testing.T) {
 		t.Fatalf("len(Assets()) = %d, want %d", got, want)
 	}
 
-	first, ok := GetAsset("ravel_gfm_css")
+	first, ok := GetAsset("ravel.gfm.css")
 	if !ok {
-		t.Fatal("ravel_gfm_css is missing")
+		t.Fatal("ravel.gfm.css is missing")
 	}
-	if first.File != "assets/ravel-gfm.css" {
-		t.Fatalf("ravel_gfm_css file = %q", first.File)
+	if first.File != "assets/ravel.gfm.css" {
+		t.Fatalf("ravel.gfm.css file = %q", first.File)
 	}
 	if first.ContentType != "text/css; charset=utf-8" {
-		t.Fatalf("ravel_gfm_css content type = %q", first.ContentType)
+		t.Fatalf("ravel.gfm.css content type = %q", first.ContentType)
 	}
-	if first.RemoteURL != expectedRemoteURL(t, "assets/ravel-gfm.css") {
-		t.Fatalf("ravel_gfm_css remote URL = %q", first.RemoteURL)
+	if first.RemoteURL != expectedRemoteURL(t, "assets/ravel.gfm.css") {
+		t.Fatalf("ravel.gfm.css remote URL = %q", first.RemoteURL)
 	}
 
 	if _, ok := GetAsset("missing"); ok {
 		t.Fatal("missing asset unexpectedly exists")
 	}
 
-	highlight, ok := GetAsset("highlight_js")
+	highlight, ok := GetAsset("highlight-core.js")
 	if !ok {
-		t.Fatal("highlight_js is missing")
+		t.Fatal("highlight-core.js is missing")
 	}
 	if highlight.ContentType != "application/javascript; charset=utf-8" {
-		t.Fatalf("highlight_js content type = %q", highlight.ContentType)
+		t.Fatalf("highlight-core.js content type = %q", highlight.ContentType)
 	}
 
-	folio, ok := GetAsset("folio_gfm_css")
+	folio, ok := GetAsset("folio.gfm.css")
 	if !ok {
-		t.Fatal("folio_gfm_css is missing")
+		t.Fatal("folio.gfm.css is missing")
 	}
-	if folio.File != "assets/folio-gfm.css" {
-		t.Fatalf("folio_gfm_css file = %q", folio.File)
+	if folio.File != "assets/folio.gfm.css" {
+		t.Fatalf("folio.gfm.css file = %q", folio.File)
 	}
-	if folio.RemoteURL != expectedRemoteURL(t, "assets/folio-gfm.css") {
-		t.Fatalf("folio_gfm_css remote URL = %q", folio.RemoteURL)
+	if folio.RemoteURL != expectedRemoteURL(t, "assets/folio.gfm.css") {
+		t.Fatalf("folio.gfm.css remote URL = %q", folio.RemoteURL)
 	}
 }
 
 func TestReadAsset(t *testing.T) {
-	content, asset, err := ReadAsset("github_gfm_css")
+	content, asset, err := ReadAsset("github.gfm.css")
 	if err != nil {
 		t.Fatalf("ReadAsset() error = %v", err)
 	}
-	if asset.File != "assets/github-gfm.css" {
-		t.Fatalf("github_gfm_css file = %q", asset.File)
+	if asset.File != "assets/github.gfm.css" {
+		t.Fatalf("github.gfm.css file = %q", asset.File)
 	}
 	if len(content) == 0 {
-		t.Fatal("github_gfm_css content is empty")
+		t.Fatal("github.gfm.css content is empty")
 	}
 }
 
 func TestEmbeddedAssetContentIsGeneratedSeparatelyFromPackagedSource(t *testing.T) {
-	sourceContent, _, err := ReadAsset("github_gfm_css")
+	sourceContent, _, err := ReadAsset("github.gfm.css")
 	if err != nil {
 		t.Fatalf("ReadAsset() error = %v", err)
 	}
-	embeddedContent, err := ReadEmbeddedAssetContent("github_gfm_css")
+	embeddedContent, err := ReadEmbeddedAssetContent("github.gfm.css")
 	if err != nil {
 		t.Fatalf("ReadEmbeddedAssetContent() error = %v", err)
 	}
@@ -111,7 +111,7 @@ func TestEmbeddedAssetContentIsGeneratedSeparatelyFromPackagedSource(t *testing.
 		t.Fatalf("embedded asset length = %d, source length = %d", len(embeddedContent), len(sourceContent))
 	}
 
-	html, err := RenderMarkdownToHTML("# Hello", RenderOptions{AssetMode: "inline", CSS: "github_gfm_css"})
+	html, err := RenderMarkdownToHTML("# Hello", RenderOptions{AssetMode: "inline", CSS: "github"})
 	if err != nil {
 		t.Fatalf("RenderMarkdownToHTML() error = %v", err)
 	}
@@ -129,7 +129,7 @@ func TestReadEmbeddedAssetContentRejectsUnknownAsset(t *testing.T) {
 func TestAssetsReturnsCopy(t *testing.T) {
 	items := Assets()
 	items[0].Key = "changed"
-	if MustAsset("ravel_gfm_css").Key != "ravel_gfm_css" {
+	if MustAsset("ravel.gfm.css").Key != "ravel.gfm.css" {
 		t.Fatal("Assets returned mutable package state")
 	}
 }

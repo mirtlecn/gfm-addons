@@ -50,7 +50,7 @@ test('renderMarkdownToHtml returns a complete HTML document with remote assets b
   assert.match(html, /<meta property="og:title" content="Hello &lt;World&gt;">/);
   assert.match(html, /<meta name="twitter:title" content="Hello &lt;World&gt;">/);
   assert.match(html, /<article class="markdown-body">/);
-  assert.match(html, new RegExp(getAsset('ravel_gfm_css').remoteUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
+  assert.match(html, new RegExp(getAsset('ravel.gfm.css').remoteUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
   assert.doesNotMatch(html, /gfm-addons\.js/);
   assert.doesNotMatch(html, /highlight-light\.css/);
 });
@@ -188,37 +188,42 @@ ${bodyText}`);
 test('renderMarkdownToHtml injects local TOC assets when enough headings exist', () => {
   const html = renderMarkdownToHtml('# One\n\n## Two', { assetMode: 'local' });
 
-  assert.match(html, /href="\/asset\/gfm_addons_css"/);
-  assert.match(html, /src="\/asset\/gfm_addons_js"/);
+  assert.match(html, /href="\/asset\/gfm-addons.css"/);
+  assert.match(html, /src="\/asset\/gfm-addons.js"/);
 });
 
 test('renderMarkdownToHtml inlines assets when requested', () => {
   const html = renderMarkdownToHtml('# One\n\n## Two\n\n```js\nconsole.log("hi")\n```', { assetMode: 'inline' });
 
-  assert.match(html, /<style data-gfm-asset="ravel_gfm_css">/);
-  assert.match(html, /<style data-gfm-asset="gfm_addons_css">/);
-  assert.match(html, /<script data-gfm-asset="gfm_addons_js">/);
-  assert.match(html, /<style data-gfm-asset="highlight_light_css" media="\(prefers-color-scheme: light\)">/);
-  assert.match(html, /<style data-gfm-asset="highlight_dark_css" media="\(prefers-color-scheme: dark\)">/);
+  assert.match(html, /<style data-gfm-asset="ravel.gfm.css">/);
+  assert.match(html, /<style data-gfm-asset="gfm-addons.css">/);
+  assert.match(html, /<script data-gfm-asset="gfm-addons.js">/);
+  assert.match(html, /<style data-gfm-asset="highlight-light.css" media="\(prefers-color-scheme: light\)">/);
+  assert.match(html, /<style data-gfm-asset="highlight-dark.css" media="\(prefers-color-scheme: dark\)">/);
   assert.doesNotMatch(html, /cdn\.jsdelivr\.net/);
   assert.doesNotMatch(html, /href="\/asset\//);
   assert.doesNotMatch(html, /src="\/asset\//);
 });
 
 test('renderMarkdownToHtml normalizes CSS aliases before rendering', () => {
-  assert.equal(normalizeCssAssetKey('github'), 'github_gfm_css');
-  assert.equal(normalizeCssAssetKey(' github_gfm_css '), 'github_gfm_css');
+  assert.equal(normalizeCssAssetKey('github'), 'github.gfm.css');
+  assert.throws(
+    () => normalizeCssAssetKey(' github.gfm.css '),
+    /Unsupported CSS asset: github\.gfm\.css/,
+  );
 
   const html = renderMarkdownToHtml('# GitHub', { assetMode: 'inline', css: 'github' });
 
-  assert.match(html, /<style data-gfm-asset="github_gfm_css">/);
+  assert.match(html, /<style data-gfm-asset="github.gfm.css">/);
 });
 
 test('renderMarkdownToHtml accepts CSS hrefs in remote asset mode', () => {
   const cssUrl = 'https://example.com/hi.css?raw=true';
   const httpUrl = 'http://abc.com/a.css';
+  const keyLikeLocalHref = 'github.gfm.css';
   const html = renderMarkdownToHtml('# Remote', { css: cssUrl });
   const localHtml = renderMarkdownToHtml('# Local', { css: '../css' });
+  const keyLikeHtml = renderMarkdownToHtml('# Key-like href', { css: keyLikeLocalHref });
 
   assert.deepEqual(normalizeCssReference(cssUrl, { assetMode: 'remote' }), {
     type: 'href',
@@ -228,9 +233,14 @@ test('renderMarkdownToHtml accepts CSS hrefs in remote asset mode', () => {
     type: 'href',
     href: httpUrl,
   });
+  assert.deepEqual(normalizeCssReference(keyLikeLocalHref, { assetMode: 'remote' }), {
+    type: 'href',
+    href: keyLikeLocalHref,
+  });
   assert.match(html, /<link rel="stylesheet" href="https:\/\/example\.com\/hi\.css\?raw=true">/);
   assert.match(localHtml, /<link rel="stylesheet" href="\.\.\/css">/);
-  assert.doesNotMatch(html, /ravel-gfm\.min\.css/);
+  assert.match(keyLikeHtml, /<link rel="stylesheet" href="github\.gfm\.css">/);
+  assert.doesNotMatch(html, /ravel\.gfm\.min\.css/);
 });
 
 test('renderMarkdownToHtml uses valid YAML CSS over option CSS', () => {
@@ -247,11 +257,11 @@ test('renderMarkdownToHtml uses valid YAML CSS over option CSS', () => {
     css: 'github',
   });
 
-  assert.match(aliasHtml, /<style data-gfm-asset="github_gfm_css">/);
-  assert.doesNotMatch(aliasHtml, /data-gfm-asset="folio_gfm_css"/);
+  assert.match(aliasHtml, /<style data-gfm-asset="github.gfm.css">/);
+  assert.doesNotMatch(aliasHtml, /data-gfm-asset="folio.gfm.css"/);
   assert.match(hrefHtml, /<link rel="stylesheet" href="\.\.\/css">/);
-  assert.doesNotMatch(hrefHtml, /data-gfm-asset="github_gfm_css"/);
-  assert.match(fallbackHtml, /<style data-gfm-asset="github_gfm_css">/);
+  assert.doesNotMatch(hrefHtml, /data-gfm-asset="github.gfm.css"/);
+  assert.match(fallbackHtml, /<style data-gfm-asset="github.gfm.css">/);
   assert.doesNotMatch(fallbackHtml, /theme\.js/);
 });
 
@@ -265,10 +275,10 @@ test('renderMarkdownToHtml keeps YAML theme assets mode-aware while hrefs stay d
     css: 'github',
   });
 
-  assert.match(localThemeHtml, /<link rel="stylesheet" href="\/asset\/github_gfm_css">/);
-  assert.doesNotMatch(localThemeHtml, /folio_gfm_css/);
+  assert.match(localThemeHtml, /<link rel="stylesheet" href="\/asset\/github.gfm.css">/);
+  assert.doesNotMatch(localThemeHtml, /folio.gfm.css/);
   assert.match(localHrefHtml, /<link rel="stylesheet" href="\.\.\/css">/);
-  assert.doesNotMatch(localHrefHtml, /\/asset\/github_gfm_css/);
+  assert.doesNotMatch(localHrefHtml, /\/asset\/github.gfm.css/);
 });
 
 test('renderMarkdownToHtml rejects unsupported CSS assets without a valid YAML CSS override', () => {
@@ -277,8 +287,12 @@ test('renderMarkdownToHtml rejects unsupported CSS assets without a valid YAML C
     /Unsupported CSS asset: missing/,
   );
   assert.throws(
-    () => normalizeCssAssetKey('highlight_light_css'),
-    /Unsupported CSS asset: highlight_light_css/,
+    () => normalizeCssAssetKey('highlight-light.css'),
+    /Unsupported CSS asset: highlight-light.css/,
+  );
+  assert.throws(
+    () => normalizeCssAssetKey('github_gfm_css'),
+    /Unsupported CSS asset: github_gfm_css/,
   );
   assert.throws(
     () => renderMarkdownToHtml('# Href', { assetMode: 'inline', css: 'https://example.com/hi.css?raw=true' }),
@@ -291,10 +305,10 @@ test('renderMarkdownToHtml rejects unsupported CSS assets without a valid YAML C
 });
 
 test('renderMarkdownToHtml supports the Folio GFM CSS asset', () => {
-  const html = renderMarkdownToHtml('# Folio', { assetMode: 'inline', css: 'folio_gfm_css' });
+  const html = renderMarkdownToHtml('# Folio', { assetMode: 'inline', css: 'folio' });
 
   assert.match(html, /<article class="markdown-body">/);
-  assert.match(html, /<style data-gfm-asset="folio_gfm_css">/);
+  assert.match(html, /<style data-gfm-asset="folio.gfm.css">/);
   assert.match(html, /body:has\(\.markdown-body\)/);
   assert.match(html, /\.markdown-body\{[^}]*max-width:210mm[^}]*width:100%/s);
   assert.doesNotMatch(html, /min-height:297mm/);
@@ -310,12 +324,13 @@ test('renderMarkdownToHtml supports the Folio GFM CSS asset', () => {
 test('renderMarkdownToHtml keeps Folio footers outside the page frame', () => {
   const html = renderMarkdownToHtml('# Folio', {
     assetMode: 'inline',
-    css: 'folio_gfm_css',
+    css: 'folio',
     footerHtml: '<a href="https://example.test/contact">Contact</a>',
   });
 
   assert.match(html, /<footer class="markdown-body post-footer">\n<a href="https:\/\/example\.test\/contact">Contact<\/a>\n<\/footer>/);
   assert.match(html, /\.markdown-body\.post-footer\{[^}]*min-height:0[^}]*padding-right:0[^}]*padding-bottom:0[^}]*padding-left:0[^}]*border:0[^}]*background:transparent[^}]*box-shadow:none/s);
+  assert.match(html, /@media screen and \(max-width:860px\)\{body:has\(\.markdown-body\)\{padding:0 0 42px/);
   assert.doesNotMatch(html, /\.markdown-body\.post-footer\{[^}]*padding-top/s);
   assert.doesNotMatch(html, /\.markdown-body\.post-footer\{[^}]*font-size/s);
 });
@@ -323,8 +338,8 @@ test('renderMarkdownToHtml keeps Folio footers outside the page frame', () => {
 test('renderMarkdownToHtml injects highlight assets only for code blocks', () => {
   const html = renderMarkdownToHtml('```js\nconsole.log("hi")\n```', { assetMode: 'local' });
 
-  assert.match(html, /href="\/asset\/highlight_light_css" media="\(prefers-color-scheme: light\)"/);
-  assert.match(html, /href="\/asset\/highlight_dark_css" media="\(prefers-color-scheme: dark\)"/);
+  assert.match(html, /href="\/asset\/highlight-light.css" media="\(prefers-color-scheme: light\)"/);
+  assert.match(html, /href="\/asset\/highlight-dark.css" media="\(prefers-color-scheme: dark\)"/);
 });
 
 test('renderMarkdownToHtml supports slots, extra CSS, and body classes', () => {
@@ -361,7 +376,9 @@ test('renderMarkdownToHtml injects a sticky markdown footer', () => {
   assert.match(html, /min-height: 100vh;/);
   assert.match(html, /display: flex;/);
   assert.match(html, /flex-direction: column;/);
-  assert.match(html, /\.post-footer \{\n    flex-shrink: 0;\n    margin-top: auto;\n    padding-top: 48px;\n    text-align: center;\n    font-size: 12px;\n  \}/);
+  assert.match(html, /<style>\nbody \{ box-sizing: border-box; min-width: 200px; max-width: 838px; min-height: 100vh; margin: 0 auto; padding: 45px; display: flex; flex-direction: column; \}/);
+  assert.doesNotMatch(html, /body \{\n/);
+  assert.match(html, /\.post-footer \{ flex-shrink: 0; margin-top: auto; padding-top: 48px; text-align: center; font-size: 12px; \}/);
   assert.match(html, /<footer class="markdown-body post-footer">\nfooter-e8c3a91f <a href="https:\/\/example\.test\/link-42">link-17b92<\/a>\n<\/footer>/);
 });
 
@@ -375,18 +392,18 @@ test('renderMarkdownToHtml omits the sticky footer for blank footer HTML', () =>
 
 test('getGfmAssetUrl supports custom resolver and local base URL', () => {
   assert.equal(
-    getGfmAssetUrl('ravel_gfm_css', { assetMode: 'local', assetBaseUrl: '/static/assets' }),
-    '/static/assets/ravel_gfm_css',
+    getGfmAssetUrl('ravel.gfm.css', { assetMode: 'local', assetBaseUrl: '/static/assets' }),
+    '/static/assets/ravel.gfm.css',
   );
   assert.equal(
-    getGfmAssetUrl('ravel_gfm_css', { resolveAssetUrl: (asset) => `/custom/${asset.key}` }),
-    '/custom/ravel_gfm_css',
+    getGfmAssetUrl('ravel.gfm.css', { resolveAssetUrl: (asset) => `/custom/${asset.key}` }),
+    '/custom/ravel.gfm.css',
   );
 });
 
 test('getGfmAssetUrl rejects asset modes that do not produce URLs', () => {
   assert.throws(
-    () => getGfmAssetUrl('ravel_gfm_css', { assetMode: 'inline' }),
+    () => getGfmAssetUrl('ravel.gfm.css', { assetMode: 'inline' }),
     /Unsupported assetMode: inline/,
   );
 });
@@ -399,8 +416,8 @@ test('CLI prints help with --help and -h', async () => {
   assert.match(help.stdout, /Reads piped stdin when omitted/);
   assert.match(help.stdout, /--canonical <url>/);
   assert.match(help.stdout, /--fallback-image <true\|false>/);
-  assert.match(help.stdout, /-c, --css <assetKey\|href>/);
-  assert.match(help.stdout, /Supported: ravel, whitey, newsprint, github, folio \(or ravel_gfm_css, whitey_gfm_css, newsprint_gfm_css, github_gfm_css, folio_gfm_css\); remote mode also accepts stylesheet hrefs/);
+  assert.match(help.stdout, /-c, --css <theme\|href>/);
+  assert.match(help.stdout, /Supported: ravel, whitey, newsprint, github, folio; remote mode also accepts stylesheet hrefs/);
   assert.match(help.stdout, /Markdown front matter gfm_css overrides this option when valid/);
   assert.match(help.stdout, /--asset-mode <remote\|local\|inline>/);
   assert.match(help.stdout, /Default: inline/);
@@ -426,21 +443,21 @@ test('CLI reads stdin when file is omitted', async () => {
   assert.equal(result.code, 0);
   assert.match(result.stdout, /<title>From stdin<\/title>/);
   assert.match(result.stdout, /From stdin/);
-  assert.match(result.stdout, /<style data-gfm-asset="ravel_gfm_css">/);
+  assert.match(result.stdout, /<style data-gfm-asset="ravel.gfm.css">/);
   assert.doesNotMatch(result.stdout, /cdn\.jsdelivr\.net/);
   assert.equal(result.stderr, '');
 });
 
 test('CLI accepts -c as a CSS asset alias', async () => {
-  const result = await runCliWithInput(['-c', 'folio_gfm_css'], '# Folio');
+  const result = await runCliWithInput(['-c', 'folio'], '# Folio');
   const aliasResult = await runCliWithInput(['-c', 'github'], '# GitHub');
 
   assert.equal(result.code, 0);
-  assert.match(result.stdout, /<style data-gfm-asset="folio_gfm_css">/);
+  assert.match(result.stdout, /<style data-gfm-asset="folio.gfm.css">/);
   assert.match(result.stdout, /body:has\(\.markdown-body\)/);
   assert.equal(result.stderr, '');
   assert.equal(aliasResult.code, 0);
-  assert.match(aliasResult.stdout, /<style data-gfm-asset="github_gfm_css">/);
+  assert.match(aliasResult.stdout, /<style data-gfm-asset="github.gfm.css">/);
   assert.equal(aliasResult.stderr, '');
 });
 
@@ -451,7 +468,7 @@ test('CLI accepts CSS hrefs only in remote asset mode', async () => {
 
   assert.equal(result.code, 0);
   assert.match(result.stdout, /<link rel="stylesheet" href="https:\/\/example\.com\/hi\.css\?raw=true">/);
-  assert.doesNotMatch(result.stdout, /ravel-gfm\.min\.css/);
+  assert.doesNotMatch(result.stdout, /ravel\.gfm\.min\.css/);
   assert.equal(result.stderr, '');
   assert.equal(localResult.code, 0);
   assert.match(localResult.stdout, /<link rel="stylesheet" href="\.\.\/css">/);
@@ -460,12 +477,15 @@ test('CLI accepts CSS hrefs only in remote asset mode', async () => {
 });
 
 test('CLI rejects unsupported CSS assets during argument parsing', async () => {
-  const result = await runCliWithInput(['-c', 'highlight_light_css'], '# Highlight');
+  const result = await runCliWithInput(['-c', 'highlight-light.css'], '# Highlight');
+  const legacyResult = await runCliWithInput(['-c', 'github_gfm_css'], '# Legacy');
 
   assert.equal(result.code, 1);
   assert.equal(result.stdout, '');
-  assert.match(result.stderr, /Unsupported CSS asset: highlight_light_css/);
-  assert.match(result.stderr, /^Unsupported CSS asset: highlight_light_css/);
+  assert.match(result.stderr, /CSS hrefs require assetMode remote: highlight-light.css/);
+  assert.equal(legacyResult.code, 1);
+  assert.equal(legacyResult.stdout, '');
+  assert.match(legacyResult.stderr, /Unsupported CSS asset: github_gfm_css/);
 });
 
 test('CLI renders a file to an output path', async () => {
@@ -478,7 +498,7 @@ test('CLI renders a file to an output path', async () => {
   const html = await readFile(output, 'utf8');
 
   assert.match(html, /File input/);
-  assert.match(html, /href="\/asset\/ravel_gfm_css"/);
+  assert.match(html, /href="\/asset\/ravel.gfm.css"/);
 });
 
 test('CLI accepts raw footer HTML', async () => {

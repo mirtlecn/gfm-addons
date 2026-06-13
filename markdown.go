@@ -69,5 +69,5 @@ func calloutCSS() string {
 		"  .markdown-body .callout-warning { border-color: #d29922; }",
 		"  .markdown-body .callout-caution { border-color: #f85149; }",
 		"}",
-	}, "\n")
+	}, "")
 }

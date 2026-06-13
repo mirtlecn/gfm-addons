@@ -8,14 +8,14 @@ import (
 )
 
 const (
-	defaultCSSAssetKey  = "ravel_gfm_css"
-	defaultAssetMode    = "remote"
-	defaultAssetBaseURL = "/asset/"
-	darkBackgroundColor = "#0d1117"
-	gfmCSSAssetSuffix   = "_gfm_css"
-	assetModeLocal      = "local"
-	assetModeInline     = "inline"
-	assetModeRemote     = "remote"
+	defaultCSSAssetAlias = "ravel"
+	defaultAssetMode     = "remote"
+	defaultAssetBaseURL  = "/asset/"
+	darkBackgroundColor  = "#0d1117"
+	gfmCSSAssetSuffix    = ".gfm.css"
+	assetModeLocal       = "local"
+	assetModeInline      = "inline"
+	assetModeRemote      = "remote"
 )
 
 // RenderOptions customizes Markdown rendering and the generated HTML wrapper.
@@ -119,22 +119,29 @@ func supportedCSSAssetAliases() []string {
 }
 
 func formatSupportedCSSAssets() string {
-	return strings.Join(supportedCSSAssetAliases(), ", ") + " (or " + strings.Join(supportedCSSAssetKeys(), ", ") + ")"
+	return strings.Join(supportedCSSAssetAliases(), ", ")
+}
+
+func resolveCSSAssetKey(requested string) (string, bool) {
+	if strings.HasSuffix(requested, gfmCSSAssetSuffix) {
+		return "", false
+	}
+	candidate := requested + gfmCSSAssetSuffix
+	for _, key := range supportedCSSAssetKeys() {
+		if candidate == key {
+			return candidate, true
+		}
+	}
+	return "", false
 }
 
 func normalizeCSSAssetKey(css string) (string, error) {
 	requested := strings.TrimSpace(css)
 	if requested == "" {
-		requested = defaultCSSAssetKey
+		requested = defaultCSSAssetAlias
 	}
-	candidate := requested
-	if !strings.HasSuffix(candidate, gfmCSSAssetSuffix) {
-		candidate += gfmCSSAssetSuffix
-	}
-	for _, key := range supportedCSSAssetKeys() {
-		if candidate == key {
-			return candidate, nil
-		}
+	if cssKey, ok := resolveCSSAssetKey(requested); ok {
+		return cssKey, nil
 	}
 	return "", fmt.Errorf("unsupported CSS asset: %s (supported: %s)", requested, formatSupportedCSSAssets())
 }
@@ -165,7 +172,10 @@ func isLocalCSSHref(value string) bool {
 func normalizeCSSReference(css string, assetMode string) (string, string, error) {
 	requested := strings.TrimSpace(css)
 	if requested == "" {
-		requested = defaultCSSAssetKey
+		requested = defaultCSSAssetAlias
+	}
+	if cssKey, ok := resolveCSSAssetKey(requested); ok {
+		return cssKey, "", nil
 	}
 	if isRemoteCSSHref(requested) || (!isURLLike(requested) && isLocalCSSHref(requested)) {
 		if assetMode != assetModeRemote {
@@ -203,11 +213,11 @@ func dynamicAssets(htmlBody string, options normalizedRenderOptions) ([]string, 
 	bodyScripts := []string{}
 
 	if countHeadings(htmlBody) >= 2 {
-		cssAsset, err := renderStylesheetAsset("gfm_addons_css", options, "")
+		cssAsset, err := renderStylesheetAsset("gfm-addons.css", options, "")
 		if err != nil {
 			return nil, nil, err
 		}
-		jsAsset, err := renderScriptAsset("gfm_addons_js", options, false)
+		jsAsset, err := renderScriptAsset("gfm-addons.js", options, false)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -216,15 +226,15 @@ func dynamicAssets(htmlBody string, options normalizedRenderOptions) ([]string, 
 	}
 
 	if hasHighlightedCode(htmlBody) {
-		lightAsset, err := renderStylesheetAsset("highlight_light_css", options, "(prefers-color-scheme: light)")
+		lightAsset, err := renderStylesheetAsset("highlight-light.css", options, "(prefers-color-scheme: light)")
 		if err != nil {
 			return nil, nil, err
 		}
-		darkAsset, err := renderStylesheetAsset("highlight_dark_css", options, "(prefers-color-scheme: dark)")
+		darkAsset, err := renderStylesheetAsset("highlight-dark.css", options, "(prefers-color-scheme: dark)")
 		if err != nil {
 			return nil, nil, err
 		}
-		highlightJSAsset, err := renderScriptAsset("highlight_js", options, true)
+		highlightJSAsset, err := renderScriptAsset("highlight-core.js", options, true)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -334,23 +344,11 @@ func joinAssetBaseURL(assetBaseURL, key string) string {
 }
 
 func renderHTMLDocument(metadata markdownMetadata, htmlBody string, headLinks, bodyScripts []string, footerHTML string, options normalizedRenderOptions) string {
-	footerStyle := ""
 	footerMarkup := ""
 	if footerHTML != "" {
-		footerStyle = `
-  .post-footer {
-    flex-shrink: 0;
-    margin-top: auto;
-    padding-top: 48px;
-    text-align: center;
-    font-size: 12px;
-  }`
 		footerMarkup = "<footer class=\"markdown-body post-footer\">\n" + footerHTML + "\n</footer>"
 	}
-	extraCSS := ""
-	if options.ExtraCSS != "" {
-		extraCSS = "\n" + options.ExtraCSS + "\n"
-	}
+	wrapperStyleCSS := renderWrapperStyleCSS(footerHTML != "", options.ExtraCSS)
 
 	return "<!doctype html>\n" +
 		"<html>\n" +
@@ -361,31 +359,7 @@ func renderHTMLDocument(metadata markdownMetadata, htmlBody string, headLinks, b
 		renderMetadataTags(metadata) + "\n" +
 		strings.Join(headLinks, "\n") + "\n" +
 		"<style>\n" +
-		"  body {\n" +
-		"    box-sizing: border-box;\n" +
-		"    min-width: 200px;\n" +
-		"    max-width: 838px;\n" +
-		bodyFooterLayoutCSS(footerHTML) +
-		"    margin: 0 auto;\n" +
-		"    padding: 45px;\n" +
-		bodyFooterFlexCSS(footerHTML) +
-		"  }\n" +
-		"  .markdown-body .markdown-alert {\n" +
-		"    padding: 0.5rem 1rem;\n" +
-		"  }\n" +
-		calloutCSS() + "\n" +
-		"  @media (prefers-color-scheme: dark) {\n" +
-		"    body {\n" +
-		"      background-color: " + darkBackgroundColor + ";\n" +
-		"    }\n" +
-		"  }\n" +
-		"  @media (max-width: 767px) {\n" +
-		"    body {\n" +
-		"      max-width: 100%;\n" +
-		"      padding: 25px;\n" +
-		"    }\n" +
-		"  }" + extraCSS + "\n" +
-		footerStyle + "\n" +
+		wrapperStyleCSS + "\n" +
 		"</style>\n" +
 		options.Slots.HeadEnd + "\n" +
 		"</head>\n" +
@@ -403,18 +377,40 @@ func renderHTMLDocument(metadata markdownMetadata, htmlBody string, headLinks, b
 		"</html>"
 }
 
-func bodyFooterLayoutCSS(footerHTML string) string {
-	if footerHTML == "" {
-		return ""
+func renderWrapperStyleCSS(footerEnabled bool, extraCSS string) string {
+	bodyDeclarations := []string{
+		"box-sizing: border-box;",
+		"min-width: 200px;",
+		"max-width: 838px;",
 	}
-	return "    min-height: 100vh;\n"
-}
+	if footerEnabled {
+		bodyDeclarations = append(bodyDeclarations, "min-height: 100vh;")
+	}
+	bodyDeclarations = append(bodyDeclarations,
+		"margin: 0 auto;",
+		"padding: 45px;",
+	)
+	if footerEnabled {
+		bodyDeclarations = append(bodyDeclarations,
+			"display: flex;",
+			"flex-direction: column;",
+		)
+	}
 
-func bodyFooterFlexCSS(footerHTML string) string {
-	if footerHTML == "" {
-		return ""
+	rules := []string{
+		"body { " + strings.Join(bodyDeclarations, " ") + " }",
+		".markdown-body .markdown-alert { padding: 0.5rem 1rem; }",
+		calloutCSS(),
+		"@media (prefers-color-scheme: dark) { body { background-color: " + darkBackgroundColor + "; } }",
+		"@media (max-width: 767px) { body { max-width: 100%; padding: 25px; } }",
 	}
-	return "    display: flex;\n    flex-direction: column;\n"
+	if extraCSS != "" {
+		rules = append(rules, extraCSS)
+	}
+	if footerEnabled {
+		rules = append(rules, ".post-footer { flex-shrink: 0; margin-top: auto; padding-top: 48px; text-align: center; font-size: 12px; }")
+	}
+	return strings.Join(rules, "")
 }
 
 func renderMetadataTags(metadata markdownMetadata) string {

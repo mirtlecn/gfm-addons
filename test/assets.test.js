@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
-import { join } from 'node:path';
+import { basename, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
   assets,
@@ -12,21 +12,22 @@ import {
   getAssetRemoteUrl,
 } from '../assets.js';
 import { embeddedAssets, getEmbeddedAsset, getEmbeddedAssetContent } from '../embedded.js';
+import { assetDefinitions } from '../scripts/assets.mjs';
 import { createMinifiedFilePath, minifyAssetContent } from '../scripts/minify-assets.mjs';
 
 const rootDirectory = fileURLToPath(new URL('..', import.meta.url));
 const packageJson = JSON.parse(await readFile(join(rootDirectory, 'package.json'), 'utf8'));
 const expectedKeys = [
-  'ravel_gfm_css',
-  'whitey_gfm_css',
-  'newsprint_gfm_css',
-  'github_gfm_css',
-  'folio_gfm_css',
-  'highlight_light_css',
-  'highlight_dark_css',
-  'highlight_js',
-  'gfm_addons_css',
-  'gfm_addons_js',
+  'ravel.gfm.css',
+  'whitey.gfm.css',
+  'newsprint.gfm.css',
+  'github.gfm.css',
+  'folio.gfm.css',
+  'highlight-light.css',
+  'highlight-dark.css',
+  'highlight-core.js',
+  'gfm-addons.css',
+  'gfm-addons.js',
 ];
 
 function expectedRemoteUrl(filePath) {
@@ -35,6 +36,17 @@ function expectedRemoteUrl(filePath) {
 
 test('exports the expected GFM asset keys', () => {
   assert.deepEqual(assets.map((asset) => asset.key), expectedKeys);
+});
+
+test('asset keys are generated from file names', () => {
+  assert.deepEqual(
+    assets.map((asset) => asset.key),
+    assets.map((asset) => basename(asset.file)),
+  );
+  assert.equal(
+    assetDefinitions.some((asset) => Object.prototype.hasOwnProperty.call(asset, 'key')),
+    false,
+  );
 });
 
 test('manifest matches the JavaScript asset exports', async () => {
@@ -71,15 +83,15 @@ test('embedded asset content matches minified packaged files', async () => {
 });
 
 test('asset helpers return stable file paths, content types, and remote URLs', () => {
-  assert.equal(getAssetPath('ravel_gfm_css'), 'assets/ravel-gfm.css');
-  assert.equal(getAssetPath('folio_gfm_css'), 'assets/folio-gfm.css');
-  assert.equal(getAssetPath('highlight_js'), 'assets/highlight-core.js');
-  assert.equal(getAssetContentType('ravel_gfm_css'), 'text/css; charset=utf-8');
-  assert.equal(getAssetContentType('gfm_addons_js'), 'application/javascript; charset=utf-8');
-  assert.equal(getAssetRemoteUrl('ravel_gfm_css'), expectedRemoteUrl('assets/ravel-gfm.css'));
-  assert.equal(getAssetRemoteUrl('folio_gfm_css'), expectedRemoteUrl('assets/folio-gfm.css'));
-  assert.deepEqual(getAsset('gfm_addons_js'), {
-    key: 'gfm_addons_js',
+  assert.equal(getAssetPath('ravel.gfm.css'), 'assets/ravel.gfm.css');
+  assert.equal(getAssetPath('folio.gfm.css'), 'assets/folio.gfm.css');
+  assert.equal(getAssetPath('highlight-core.js'), 'assets/highlight-core.js');
+  assert.equal(getAssetContentType('ravel.gfm.css'), 'text/css; charset=utf-8');
+  assert.equal(getAssetContentType('gfm-addons.js'), 'application/javascript; charset=utf-8');
+  assert.equal(getAssetRemoteUrl('ravel.gfm.css'), expectedRemoteUrl('assets/ravel.gfm.css'));
+  assert.equal(getAssetRemoteUrl('folio.gfm.css'), expectedRemoteUrl('assets/folio.gfm.css'));
+  assert.deepEqual(getAsset('gfm-addons.js'), {
+    key: 'gfm-addons.js',
     file: 'assets/gfm-addons.js',
     contentType: 'application/javascript; charset=utf-8',
     remoteUrl: expectedRemoteUrl('assets/gfm-addons.js'),

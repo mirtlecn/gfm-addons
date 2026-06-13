@@ -18,11 +18,11 @@ export {
   getAssetRemoteUrl,
 } from './assets.js';
 
-const defaultCssAssetKey = 'ravel_gfm_css';
+const defaultCssAssetAlias = 'ravel';
 const defaultAssetMode = 'remote';
 const defaultAssetBaseUrl = '/asset/';
 const darkBackgroundColor = '#0d1117';
-const gfmCssAssetSuffix = '_gfm_css';
+const gfmCssAssetSuffix = '.gfm.css';
 
 export const gfmCssAssetKeys = Object.freeze(
   assets
@@ -39,15 +39,19 @@ const gfmCssAssetAliasMap = new Map(
 );
 
 export function formatSupportedCssAssets() {
-  return `${gfmCssAssetAliases.join(', ')} (or ${gfmCssAssetKeys.join(', ')}); remote mode also accepts stylesheet hrefs`;
+  return `${gfmCssAssetAliases.join(', ')}; remote mode also accepts stylesheet hrefs`;
 }
 
-export function normalizeCssAssetKey(css = defaultCssAssetKey) {
-  const requested = css === undefined || css === null ? '' : String(css).trim();
-  const candidate = requested || defaultCssAssetKey;
-  const normalized = gfmCssAssetAliasMap.get(candidate) || candidate;
+function resolveCssAssetKey(css) {
+  return gfmCssAssetAliasMap.get(css) || null;
+}
 
-  if (!gfmCssAssetKeySet.has(normalized)) {
+export function normalizeCssAssetKey(css = defaultCssAssetAlias) {
+  const requested = css === undefined || css === null ? '' : String(css).trim();
+  const candidate = requested || defaultCssAssetAlias;
+  const normalized = resolveCssAssetKey(candidate);
+
+  if (!normalized) {
     throw new Error(`Unsupported CSS asset: ${candidate}. Supported CSS assets: ${formatSupportedCssAssets()}`);
   }
 
@@ -82,10 +86,15 @@ function isLocalCssHref(value) {
   return hasCssPath(value) || value.startsWith('/') || value.startsWith('./') || value.startsWith('../');
 }
 
-export function normalizeCssReference(css = defaultCssAssetKey, options = {}) {
+export function normalizeCssReference(css = defaultCssAssetAlias, options = {}) {
   const requested = css === undefined || css === null ? '' : String(css).trim();
-  const candidate = requested || defaultCssAssetKey;
+  const candidate = requested || defaultCssAssetAlias;
   const assetMode = options.assetMode || defaultAssetMode;
+  const assetKey = resolveCssAssetKey(candidate);
+
+  if (assetKey) {
+    return { type: 'asset', key: assetKey };
+  }
 
   if (isRemoteCssHref(candidate) || (!isUrlLike(candidate) && isLocalCssHref(candidate))) {
     if (assetMode !== 'remote') {
@@ -457,6 +466,32 @@ ${footerHtml}
 </footer>` : '';
 }
 
+function renderWrapperStyleCss({ footerEnabled, extraCss }) {
+  const bodyDeclarations = [
+    'box-sizing: border-box;',
+    'min-width: 200px;',
+    'max-width: 838px;',
+    footerEnabled ? 'min-height: 100vh;' : '',
+    'margin: 0 auto;',
+    'padding: 45px;',
+    footerEnabled ? 'display: flex;' : '',
+    footerEnabled ? 'flex-direction: column;' : '',
+  ].filter(Boolean);
+  const rules = [
+    `body { ${bodyDeclarations.join(' ')} }`,
+    '.markdown-body .markdown-alert { padding: 0.5rem 1rem; }',
+    `@media (prefers-color-scheme: dark) { body { background-color: ${darkBackgroundColor}; } }`,
+    '@media (max-width: 767px) { body { max-width: 100%; padding: 25px; } }',
+  ];
+  if (extraCss) {
+    rules.push(extraCss);
+  }
+  if (footerEnabled) {
+    rules.push('.post-footer { flex-shrink: 0; margin-top: auto; padding-top: 48px; text-align: center; font-size: 12px; }');
+  }
+  return rules.join('');
+}
+
 export function getGfmAssetUrl(key, options = {}) {
   const asset = getAsset(key);
   const { assetMode, assetBaseUrl, resolveAssetUrl } = normalizeAssetOptions(options);
@@ -516,7 +551,7 @@ export function renderMarkdownToHtml(markdown, options = {}) {
       title = '',
       canonical = '',
       fallbackImage = false,
-      css = defaultCssAssetKey,
+      css = defaultCssAssetAlias,
       slots = {},
       extraCss = '',
       bodyClass = '',
@@ -535,13 +570,13 @@ export function renderMarkdownToHtml(markdown, options = {}) {
     const bodyScripts = [];
 
     if (headingCount >= 2) {
-      headLinks.push(renderStylesheetAsset('gfm_addons_css', assetOptions));
-      bodyScripts.push(renderScriptAsset('gfm_addons_js', assetOptions));
+      headLinks.push(renderStylesheetAsset('gfm-addons.css', assetOptions));
+      bodyScripts.push(renderScriptAsset('gfm-addons.js', assetOptions));
     }
 
     if (codeBlocksPresent) {
-      headLinks.push(renderStylesheetAsset('highlight_light_css', assetOptions, '(prefers-color-scheme: light)'));
-      headLinks.push(renderStylesheetAsset('highlight_dark_css', assetOptions, '(prefers-color-scheme: dark)'));
+      headLinks.push(renderStylesheetAsset('highlight-light.css', assetOptions, '(prefers-color-scheme: light)'));
+      headLinks.push(renderStylesheetAsset('highlight-dark.css', assetOptions, '(prefers-color-scheme: dark)'));
     }
 
     const context = {
@@ -555,16 +590,11 @@ export function renderMarkdownToHtml(markdown, options = {}) {
       assetMode: assetOptions.assetMode,
       assetBaseUrl: assetOptions.assetBaseUrl,
     };
-    const footerStyle = normalizedFooterHtml ? `
-  .post-footer {
-    flex-shrink: 0;
-    margin-top: auto;
-    padding-top: 48px;
-    text-align: center;
-    font-size: 12px;
-  }` : '';
     const footerMarkup = renderFooterMarkup(normalizedFooterHtml);
-    const extraCssBlock = extraCss ? `\n${extraCss}\n` : '';
+    const wrapperStyleCss = renderWrapperStyleCss({
+      footerEnabled: Boolean(normalizedFooterHtml),
+      extraCss,
+    });
 
     return `<!doctype html>
 <html>
@@ -575,31 +605,7 @@ export function renderMarkdownToHtml(markdown, options = {}) {
 ${renderMetadataTags(metadata)}
 ${headLinks.join('\n')}
 <style>
-  body {
-    box-sizing: border-box;
-    min-width: 200px;
-    max-width: 838px;
-    ${normalizedFooterHtml ? 'min-height: 100vh;' : ''}
-    margin: 0 auto;
-    padding: 45px;
-    ${normalizedFooterHtml ? 'display: flex;' : ''}
-    ${normalizedFooterHtml ? 'flex-direction: column;' : ''}
-  }
-  .markdown-body .markdown-alert {
-    padding: 0.5rem 1rem;
-  }
-  @media (prefers-color-scheme: dark) {
-    body {
-      background-color: ${darkBackgroundColor};
-    }
-  }
-  @media (max-width: 767px) {
-    body {
-      max-width: 100%;
-      padding: 25px;
-    }
-  }${extraCssBlock}
-${footerStyle}
+${wrapperStyleCss}
 </style>
 ${renderSlot(slots, 'headEnd', context)}
 </head>
