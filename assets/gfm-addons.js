@@ -155,6 +155,16 @@
           , o = Number(t.getAttribute("height")) || t.naturalHeight || t.height || 0;
         return e && o ? `${e} / ${o}` : "16 / 9"
     }
+    function I(t, e) {
+        const o = window.getComputedStyle(t)
+          , n = parseFloat(o.borderTopWidth) || 0;
+        if (n > 0 && "none" !== o.borderTopStyle && (e.style.setProperty("--image-frame-border-width", o.borderTopWidth),
+        e.style.setProperty("--image-frame-border-color", o.borderTopColor)),
+        o.borderRadius && "0px" !== o.borderRadius && e.style.setProperty("--image-frame-border-radius", o.borderRadius),
+        [o.paddingTop, o.paddingRight, o.paddingBottom, o.paddingLeft].some((t => (parseFloat(t) || 0) > 0))) {
+            e.style.setProperty("--image-frame-padding", `${o.paddingTop} ${o.paddingRight} ${o.paddingBottom} ${o.paddingLeft}`)
+        }
+    }
     function S(t, e) {
         t.classList.remove("is-loading", "is-error"),
         t.classList.add("is-loaded"),
@@ -187,6 +197,7 @@
             t.dataset.imageEnhanced = "true";
             const e = document.createElement("span");
             e.className = "image-loading-wrap is-loading",
+            I(t, e),
             e.style.setProperty("--image-aspect-ratio", A(t)),
             t.parentNode.insertBefore(e, t),
             e.appendChild(t),

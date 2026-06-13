@@ -9,6 +9,7 @@
     --base-text-weight-semibold: 600;
     --terminal-background: #fffbf7;
     --terminal-foreground: #45372b;
+    --terminal-body-foreground: var(--terminal-foreground);
     --terminal-accent: #df7020;
     --terminal-muted: color-mix(in srgb, var(--terminal-foreground) 66%, var(--terminal-background));
     --terminal-subtle: color-mix(in srgb, var(--terminal-foreground) 5%, transparent);
@@ -17,8 +18,21 @@
     --terminal-radius: 0;
     --terminal-font-size: 1rem;
     --terminal-line-height: 1.54;
+    --terminal-image-frame-padding: 8px;
+    --terminal-image-frame-border-width: 8px;
+    --terminal-image-frame-border-color: var(--terminal-accent);
+    --terminal-image-frame-border-radius: var(--terminal-radius);
+    --terminal-list-indent: 1.3ch;
+    --terminal-list-top-item-gap: .7em;
+    --terminal-list-nested-gap: .45em;
+    --terminal-list-nested-indent: 1.4ch;
+    --terminal-list-nested-padding: 1.2ch;
     --terminal-font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
         "Liberation Mono", "DejaVu Sans Mono", "Cascadia Mono", "Courier New", monospace;
+    --gfm-image-frame-padding: var(--terminal-image-frame-padding);
+    --gfm-image-frame-border-width: var(--terminal-image-frame-border-width);
+    --gfm-image-frame-border-color: var(--terminal-image-frame-border-color);
+    --gfm-image-frame-border-radius: var(--terminal-image-frame-border-radius);
     --fontStack-monospace: var(--terminal-font-mono);
     --fontStack-sansSerif: var(--terminal-font-mono);
     --fgColor-accent: var(--terminal-accent);
@@ -76,7 +90,7 @@
     -webkit-text-size-adjust: 100%;
     margin: 0;
     color-scheme: light;
-    color: var(--terminal-foreground);
+    color: var(--terminal-body-foreground);
     background-color: var(--terminal-background);
     font-family: var(--terminal-font-mono);
     font-size: var(--terminal-font-size);
@@ -94,7 +108,7 @@ body:has(.markdown-body) {
 
 @media (prefers-color-scheme: dark) {
     body:has(.markdown-body) {
-        background: #1a170f;
+        background: #121418;
         color: #eceae5;
     }
 
@@ -102,8 +116,9 @@ body:has(.markdown-body) {
     [data-theme="dark"],
     [data-theme="dark"] .markdown-body,
     .markdown-body[data-theme="dark"] {
-        --terminal-background: #1a170f;
+        --terminal-background: #121418;
         --terminal-foreground: #eceae5;
+        --terminal-body-foreground: #BFBDB6;
         --terminal-accent: #32858b;
         --terminal-muted: color-mix(in srgb, var(--terminal-foreground) 68%, var(--terminal-background));
         --terminal-subtle: color-mix(in srgb, var(--terminal-foreground) 7%, transparent);
@@ -209,7 +224,7 @@ body:has(.markdown-body) {
 
 .markdown-body mark {
     background: color-mix(in srgb, var(--terminal-accent) 45%, transparent);
-    color: var(--terminal-foreground);
+    color: var(--terminal-body-foreground);
 }
 
 .markdown-body small {
@@ -237,10 +252,10 @@ body:has(.markdown-body) {
     display: block;
     max-width: 100%;
     margin: 25px 0;
-    padding: 8px;
+    padding: var(--gfm-raw-image-frame-padding, var(--terminal-image-frame-padding));
     overflow: hidden;
-    border: 8px solid var(--terminal-accent);
-    border-radius: var(--terminal-radius);
+    border: var(--gfm-raw-image-frame-border-width, var(--terminal-image-frame-border-width)) solid var(--terminal-image-frame-border-color);
+    border-radius: var(--terminal-image-frame-border-radius);
 }
 
 .markdown-body code,
@@ -513,40 +528,6 @@ body:has(.markdown-body) {
     font-size: var(--terminal-font-size);
 }
 
-.markdown-body h1::before {
-    content: "# ";
-}
-
-.markdown-body h2::before {
-    content: "## ";
-}
-
-.markdown-body h3::before {
-    content: "### ";
-}
-
-.markdown-body h4::before {
-    content: "#### ";
-}
-
-.markdown-body h5::before {
-    content: "##### ";
-}
-
-.markdown-body h6::before {
-    content: "###### ";
-}
-
-.markdown-body h1::before,
-.markdown-body h2::before,
-.markdown-body h3::before,
-.markdown-body h4::before,
-.markdown-body h5::before,
-.markdown-body h6::before {
-    color: var(--terminal-accent);
-    user-select: none;
-}
-
 .markdown-body p {
     margin: 25px 0;
 }
@@ -558,7 +539,7 @@ body:has(.markdown-body) {
     border-top: 0;
     border-bottom: 0;
     border-left: 0;
-    color: var(--terminal-foreground);
+    color: var(--terminal-body-foreground);
 }
 
 .markdown-body blockquote::after {
@@ -569,8 +550,8 @@ body:has(.markdown-body) {
     width: 2px;
     background: repeating-linear-gradient(
         to bottom,
-        var(--terminal-accent) 0 8px,
-        transparent 8px 13px
+        var(--terminal-accent) 0 3px,
+        transparent 3px 6px
     );
     content: "";
     opacity: .72;
@@ -579,7 +560,7 @@ body:has(.markdown-body) {
 .markdown-body ul,
 .markdown-body ol {
     margin: 25px 0;
-    margin-left: 4ch;
+    margin-left: var(--terminal-list-indent);
     padding-left: 0;
 }
 
@@ -789,8 +770,10 @@ body:has(.markdown-body) {
 .markdown-body ul ol,
 .markdown-body ol ol,
 .markdown-body ol ul {
-    margin-top: 0;
+    margin-top: var(--terminal-list-nested-gap);
     margin-bottom: 0;
+    margin-left: var(--terminal-list-nested-indent);
+    padding-left: var(--terminal-list-nested-padding);
 }
 
 .markdown-body li>p {
@@ -799,6 +782,11 @@ body:has(.markdown-body) {
 
 .markdown-body li+li {
     margin-top: .25em;
+}
+
+.markdown-body>ul>li+li,
+.markdown-body>ol>li+li {
+    margin-top: var(--terminal-list-top-item-gap);
 }
 
 .markdown-body li::marker {

@@ -176,14 +176,42 @@ test('terminal theme covers every GitHub GFM selector without remote fonts', asy
   assert.equal((terminalCss.match(/^\.markdown-body hr \{/gm) ?? []).length, 1);
   assert.equal((terminalCss.match(/^\.markdown-body img \{/gm) ?? []).length, 1);
   assert.equal((terminalCss.match(/^\.markdown-body kbd \{/gm) ?? []).length, 1);
+  assert.match(terminalCss, /--terminal-background: #121418;/);
+  assert.match(terminalCss, /--terminal-body-foreground: #BFBDB6;/);
+  assert.match(terminalCss, /\.markdown-body \{[\s\S]*color: var\(--terminal-body-foreground\);/);
+  assert.match(terminalCss, /--terminal-list-indent: 1\.3ch;/);
+  assert.match(terminalCss, /--terminal-list-top-item-gap: \.7em;/);
+  assert.match(terminalCss, /--terminal-list-nested-gap: \.45em;/);
+  assert.match(terminalCss, /--terminal-list-nested-indent: 1\.4ch;/);
+  assert.match(terminalCss, /--gfm-image-frame-padding: var\(--terminal-image-frame-padding\);/);
   assert.match(terminalCss, /\.markdown-body img \{[\s\S]*box-sizing: border-box;/);
+  assert.match(terminalCss, /\.markdown-body img \{[\s\S]*padding: var\(--gfm-raw-image-frame-padding, var\(--terminal-image-frame-padding\)\);/);
   assert.match(terminalCss, /\.markdown-body h1 \{\s*font-size: calc\(var\(--terminal-font-size\) \* 1\.6\);/);
   assert.match(terminalCss, /\.markdown-body h2 \{\s*font-size: calc\(var\(--terminal-font-size\) \* 1\.45\);/);
+  assert.match(terminalCss, /\.markdown-body h1,[\s\S]*\.markdown-body h6 \{[\s\S]*color: var\(--terminal-foreground\);/);
   assert.doesNotMatch(terminalCss, /@media screen and \(min-width: 768px\)/);
-  assert.match(terminalCss, /\.markdown-body h1::before \{\s*content: "# ";/);
-  assert.match(terminalCss, /\.markdown-body h2::before \{\s*content: "## ";/);
+  assert.doesNotMatch(terminalCss, /\.markdown-body h1::before/);
+  assert.doesNotMatch(terminalCss, /\.markdown-body h2::before/);
   assert.match(terminalCss, /\.markdown-body blockquote \{[\s\S]*border-top: 0;[\s\S]*border-bottom: 0;/);
+  assert.match(terminalCss, /\.markdown-body blockquote \{[\s\S]*color: var\(--terminal-body-foreground\);/);
   assert.doesNotMatch(terminalCss, /\.markdown-body blockquote::before/);
-  assert.match(terminalCss, /\.markdown-body blockquote::after \{[\s\S]*repeating-linear-gradient/);
+  assert.match(terminalCss, /\.markdown-body blockquote::after \{[\s\S]*var\(--terminal-accent\) 0 3px,[\s\S]*transparent 3px 6px/);
   assert.match(terminalCss, /\.markdown-body hr \{[\s\S]*border-top: 2px dashed var\(--terminal-accent\);/);
+  assert.match(terminalCss, /\.markdown-body ul ul,[\s\S]*margin-top: var\(--terminal-list-nested-gap\);/);
+  assert.match(terminalCss, /\.markdown-body>ul>li\+li,[\s\S]*margin-top: var\(--terminal-list-top-item-gap\);/);
+});
+
+test('GFM addons defer image enhancement without flashing theme image frames', async () => {
+  const addonsCss = await readFile(join(rootDirectory, 'assets/gfm-addons.css'), 'utf8');
+  const addonsJs = await readFile(join(rootDirectory, 'assets/gfm-addons.js'), 'utf8');
+
+  assert.doesNotMatch(addonsCss, /img:not\(\.emoji\):not\(\.enhanced-content-image\)[\s\S]*opacity: 0;/);
+  assert.match(addonsCss, /@media \(scripting: enabled\) \{[\s\S]*\.markdown-body \{\s*--gfm-raw-image-frame-padding: 0;\s*--gfm-raw-image-frame-border-width: 0;/);
+  assert.match(addonsCss, /\.image-loading-wrap \{[\s\S]*box-sizing: border-box;[\s\S]*padding: var\(--gfm-image-frame-padding, var\(--image-frame-padding, 0\)\);/);
+  assert.match(addonsCss, /\.image-loading-wrap \{[\s\S]*border: var\(--gfm-image-frame-border-width, var\(--image-frame-border-width, 1px\)\) solid var\(--gfm-image-frame-border-color, var\(--image-skeleton-border, #e5e7eb\)\);/);
+  assert.match(addonsCss, /\.enhanced-content-image \{[\s\S]*padding: 0 !important;[\s\S]*border: 0 !important;/);
+  assert.match(addonsCss, /\.image-loading-wrap\.is-loaded \{[\s\S]*border-color: var\(--gfm-image-frame-border-color, var\(--image-frame-border-color, transparent\)\);/);
+  assert.match(addonsJs, /--image-frame-border-width/);
+  assert.match(addonsJs, /--image-frame-border-color/);
+  assert.match(addonsJs, /--image-frame-padding/);
 });

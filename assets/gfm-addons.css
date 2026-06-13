@@ -227,15 +227,25 @@ body.is-toc-pinned #toc-panel.show {
     position: relative;
 }
 
+@media (scripting: enabled) {
+
+    .markdown-body {
+        --gfm-raw-image-frame-padding: 0;
+        --gfm-raw-image-frame-border-width: 0;
+    }
+}
+
 .image-loading-wrap {
     position: relative;
+    box-sizing: border-box;
     display: block;
     width: 100%;
     aspect-ratio: var(--image-aspect-ratio, 16 / 9);
+    padding: var(--gfm-image-frame-padding, var(--image-frame-padding, 0));
     overflow: hidden;
     background: var(--image-skeleton-bg, #f3f4f6);
-    border: 1px solid var(--image-skeleton-border, #e5e7eb);
-    border-radius: 8px;
+    border: var(--gfm-image-frame-border-width, var(--image-frame-border-width, 1px)) solid var(--gfm-image-frame-border-color, var(--image-skeleton-border, #e5e7eb));
+    border-radius: var(--gfm-image-frame-border-radius, var(--image-frame-border-radius, 8px));
 }
 
 .image-loading-wrap::before {
@@ -259,9 +269,14 @@ body.is-toc-pinned #toc-panel.show {
 }
 
 .enhanced-content-image {
+    box-sizing: border-box;
     display: block;
     width: 100%;
     height: auto;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
     opacity: 0;
     transition: opacity .2s ease;
 }
@@ -274,7 +289,7 @@ body.is-toc-pinned #toc-panel.show {
 .image-loading-wrap.is-loaded {
     aspect-ratio: auto;
     background: transparent;
-    border-color: transparent;
+    border-color: var(--gfm-image-frame-border-color, var(--image-frame-border-color, transparent));
 }
 
 .image-loading-wrap.is-error {
